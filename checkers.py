@@ -220,9 +220,9 @@ def reset_game():
 
 def display_winner(winner, WIDTH):
     pygame.init()
-    win_size = (int(WIDTH * 0.4), int(WIDTH * 0.3))
+    win_size = WIDTH, WIDTH
     WIN = pygame.display.set_mode(win_size)
-    pygame.display.set_caption('Game Over')
+    pygame.display.set_caption('Checkers')
 
     font_size = int(WIDTH * 0.05)
     font = pygame.font.Font(None, font_size)
@@ -266,7 +266,6 @@ def display_winner(winner, WIDTH):
         WIN.blit(text, text_rect)
 
         pygame.display.flip()
-
 
 def main(WIDTH, ROWS):
     global RED_PIECES_COUNT, GREEN_PIECES_COUNT
