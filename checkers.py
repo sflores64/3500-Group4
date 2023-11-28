@@ -18,11 +18,29 @@ dirname = os.path.dirname(__file__)
 WIDTH = 800
 ROWS = 8
 
+# CHECKERS PIECES
+###################
 RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
 GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
 
 REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
 GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
+
+# CHESS PIECES
+##########################
+BLACKKING = pygame.image.load(os.path.join(dirname, 'images/b_king.png'))
+BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/b_bishop.png'))
+BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/b_knight.png'))
+BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/b_pawn.png'))
+BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/b_queen.png'))
+BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/b_rook.png'))
+
+WHITEKING = pygame.image.load(os.path.join(dirname, 'images/w_king.png'))
+WHITEBISHOP = pygame.image.load(os.path.join(dirname, 'images/w_bishop.png'))
+WHITEKNIGHT = pygame.image.load(os.path.join(dirname, 'images/w_knight.png'))
+WHITEPAWN = pygame.image.load(os.path.join(dirname, 'images/w_pawn.png'))
+WHITEQUEEN = pygame.image.load(os.path.join(dirname, 'images/w_queen.png'))
+WHITEROOK = pygame.image.load(os.path.join(dirname, 'images/w_rook.png'))
 
 WHITE = (255,255,255)
 BLACK = (0,0,0)
