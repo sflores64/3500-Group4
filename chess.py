@@ -70,29 +70,29 @@ def make_grid(rows, width):
             if abs(i-j) % 2 == 0:
                 node.colour=LIGHT
             if count == 0 or count == 7:
-                node.piece = Piece('rook', 'B')
+                node.piece = Piece('ROOK', 'B')
             elif count == 1 or count == 6:
-                node.piece = Piece('knight', 'B')
+                node.piece = Piece('KNIGHT', 'B')
             elif count == 2 or count == 5:
-                node.piece = Piece('bishop', 'B')
+                node.piece = Piece('BISHOP', 'B')
             elif count == 3:
-                node.piece = Piece('queen', 'B')
+                node.piece = Piece('QUEEN', 'B')
             elif count == 4:
-                node.piece = Piece('king', 'B')
+                node.piece = Piece('KING', 'B')
             elif count > 7 and count < 16:
-                node.piece = Piece('pawn', 'B')
+                node.piece = Piece('PAWN', 'B')
             elif count == 56 or count == 63:
-                node.piece = Piece('rook', 'W')
+                node.piece = Piece('ROOK', 'W')
             elif count == 57 or count == 62:
-                node.piece = Piece('knight', 'W')
+                node.piece = Piece('KNIGHT', 'W')
             elif count == 58 or count == 61:
-                node.piece = Piece('bishop', 'W')
+                node.piece = Piece('BISHOP', 'W')
             elif count == 59:
-                node.piece = Piece('queen', 'W')
+                node.piece = Piece('QUEEN', 'W')
             elif count == 60:
-                node.piece = Piece('king', 'W')
+                node.piece = Piece('KING', 'W')
             elif count > 47 and count < 56:
-                node.piece = Piece('pawn', 'W')
+                node.piece = Piece('PAWN', 'W')
             #if (abs(i+j)%2==0) and (i<3):
                 #node.piece = Piece('R')
             #elif(abs(i+j)%2==0) and i>4:
@@ -114,33 +114,34 @@ class Piece:
         self.name = name
         self.team = team
         if self.team == 'B':
-            if self.name == 'bishop':
+            if self.name == 'BISHOP':
                 self.image = B_BISHOP
-            elif self.name == 'king':
+            elif self.name == 'KING':
                 self.image = B_KING
-            elif self.name == 'knight':
+            elif self.name == 'KNIGHT':
                 self.image = B_KNIGHT
-            elif self.name == 'queen':
+            elif self.name == 'QUEEN':
                 self.image = B_QUEEN
-            elif self.name == 'rook':
+            elif self.name == 'ROOK':
                 self.image = B_ROOK
             else:
                 self.image = B_PAWN
         else:
-            if self.name == 'bishop':
+            if self.name == 'BISHOP':
                 self.image = W_BISHOP
-            elif self.name == 'king':
+            elif self.name == 'KING':
                 self.image = W_KING
-            elif self.name == 'knight':
+            elif self.name == 'KNIGHT':
                 self.image = W_KNIGHT
-            elif self.name == 'queen':
+            elif self.name == 'QUEEN':
                 self.image = W_QUEEN
-            elif self.name == 'rook':
+            elif self.name == 'ROOK':
                 self.image = W_ROOK
             else:
                 self.image = W_PAWN
 
         self.type=None
+        self.hasMoved = False
 
     def draw(self, x, y):
         SCREEN.blit(self.image, (x,y))
@@ -170,25 +171,70 @@ def opposite(team):
     return "W" if team=="B" else "B"
 
 def generatePotentialMoves(nodePosition, grid):
-    checker = lambda x,y: x+y>=0 and x+y<8
+    piece = lambda x,y: x+y>=0 and x+y<8
     positions= []
     column, row = nodePosition
     if grid[column][row].piece:
         vectors = [[1, -1], [1, 1]] if grid[column][row].piece.team == "B" else [[-1, -1], [-1, 1]]
-        if grid[column][row].piece.type=='KING':
-            vectors = [[1, -1], [1, 1],[-1, -1], [-1, 1]]
+        
+        if grid[column][row].piece.name =='PAWN':
+            if grid[column][row].piece.team =='W':
+                vectors = [[-1, 0]]
+                if grid[column][row].piece.hasMoved == False:
+                    vectors = [[-1, 0], [-2, 0]]
+                
+            else:
+                vectors = [[1, 0]]
+                if grid[column][row].piece.hasMoved == False:
+                    vectors = [[1, 0], [2, 0]]
+
+        if grid[column][row].piece.name =='KNIGHT':
+            vectors = [[-2, 1], [-2, -1], [-1, 2], [-1, -2], [1, -2], [1, 2], [2, -1], [2, 1]] 
+
+        if grid[column][row].piece.name =='KING':
+            vectors = [[1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1]] 
+
+        '''if grid[column][row].piece.name =='BISHOP':
+            for i in range(4):
+                path = True
+                chain = 1
+                if i == 0:
+                    x = 1
+                    y = -1
+                elif i == 1:
+                    x = -1
+                    y = -1
+                elif i == 2:
+                    x = 1
+                    y = 1
+                else:
+                    x = -1
+                    y = 1
+                while path:
+                    if grid[column + x][row + 1]
+
+
+                    if (piece[0] + (chain * x), piece[1] + (chain * y)) not in friends_list and \
+                            0 <= position[0] + (chain * x) <= 7 and 0 <= position[1] + (chain * y) <= 7:
+                        moves_list.append((position[0] + (chain * x), position[1] + (chain * y)))
+                        if (position[0] + (chain * x), position[1] + (chain * y)) in enemies_list:
+                            path = False
+                        chain += 1
+                    else:
+                        path = False'''
+
         for vector in vectors:
             columnVector, rowVector = vector
-            if checker(columnVector,column) and checker(rowVector,row):
+            if piece(columnVector,column) and piece(rowVector,row):
                 #grid[(column+columnVector)][(row+rowVector)].colour=ORANGE
                 if not grid[(column+columnVector)][(row+rowVector)].piece:
                     positions.append((column + columnVector, row + rowVector))
                 elif grid[column+columnVector][row+rowVector].piece and\
                         grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team):
 
-                    if checker((2* columnVector), column) and checker((2* rowVector), row) \
+                    '''if piece((2* columnVector), column) and piece((2* rowVector), row) \
                             and not grid[(2* columnVector)+ column][(2* rowVector) + row].piece:
-                        positions.append((2* columnVector+ column,2* rowVector+ row ))
+                        positions.append((2* columnVector+ column,2* rowVector+ row ))'''
 
     return positions
 
@@ -206,18 +252,11 @@ def move(grid, piecePosition, newPosition):
     oldColumn, oldRow = piecePosition
 
     piece = grid[oldColumn][oldRow].piece
-    grid[newColumn][newRow].piece=piece
+    grid[newColumn][newRow].piece = piece
     grid[oldColumn][oldRow].piece = None
 
-    if newColumn==7 and grid[newColumn][newRow].piece.team=='R':
-        grid[newColumn][newRow].piece.type='KING'
-        #grid[newColumn][newRow].piece.image=REDKING
-    if newColumn==0 and grid[newColumn][newRow].piece.team=='G':
-        grid[newColumn][newRow].piece.type='KING'
-        #grid[newColumn][newRow].piece.image=GREENKING
-    if abs(newColumn-oldColumn)==2 or abs(newRow-oldRow)==2:
-        grid[int((newColumn+oldColumn)/2)][int((newRow+oldRow)/2)].piece = None
-        return grid[newColumn][newRow].piece.team
+    grid[newColumn][newRow].piece.hasMoved = True
+
     return opposite(grid[newColumn][newRow].piece.team)
 
 def main(WIDTH, ROWS):
