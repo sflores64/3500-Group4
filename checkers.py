@@ -1,40 +1,46 @@
-########################################################
-# CMPS 3500 - Class Project
-# Checkers game simulator
-# This is a program that will simulate a checkers board
-# and provide basic game functionalities.
-# This program does not abide all rules of checkers
-########################################################
-
 import pygame
 import random
 import sys
 from itertools import combinations
 import os
 
-# current directory
-dirname = os.path.dirname(__file__)
 
-WIDTH = 800
-ROWS = 8
-
-RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
-GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
-
-REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
-GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
-
+# Constants 
+WIDTH = 1000
+ROWS = 10
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
 
+# Load images
+dirname = os.path.dirname(__file__)
+RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
+GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
+REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
+GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
 
+# Initialize Pygame
 pygame.init()
+pygame.font.init()
+pygame.mixer.init()
+
+# Load sounds
+kinged_sound = pygame.mixer.Sound('sounds/chime.wav')
+
+# Set up game window
 WIN = pygame.display.set_mode((WIDTH,WIDTH))
 pygame.display.set_caption('Checkers')
 
+# Fonts
+GAME_OVER_FONT = pygame.font.SysFont("comicsans", 100)
+BUTTON_FONT = pygame.font.SysFont("comicsans", 40)
+EXIT_BUTTON_COLOR = (200, 0, 0)
+
+# Global Variables
+game_over = False
 priorMoves=[]
+
 class Node:
     def __init__(self, row, col, width):
         self.row = row
@@ -49,7 +55,6 @@ class Node:
         if self.piece:
             WIN.blit(self.piece.image, (self.x, self.y))
 
-
 def update_display(win, grid, rows, width):
     for row in grid:
         for spot in row:
@@ -57,36 +62,50 @@ def update_display(win, grid, rows, width):
     draw_grid(win, rows, width)
     pygame.display.update()
 
-
 def make_grid(rows, width):
     grid = []
-    gap = width// rows
+    gap = width // rows
     count = 0
     for i in range(rows):
         grid.append([])
         for j in range(rows):
-            node = Node(j,i, gap)
-            if abs(i-j) % 2 == 0:
-                node.colour=BLACK
-            if (abs(i+j)%2==0) and (i<3):
-                node.piece = Piece('R')
-            elif(abs(i+j)%2==0) and i>4:
-                node.piece=Piece('G')
-            count+=1
+            node = Node(j, i, gap)
+
+            # Check if in the central 8x8 area
+            if 1 <= i <= 8 and 1 <= j <= 8:
+                if abs(i - j) % 2 == 0:
+                    node.colour = BLACK
+                if (abs(i + j) % 2 == 0) and (i < 4):
+                    node.piece = Piece('R')
+                elif (abs(i + j) % 2 == 0) and i > 5:
+                    node.piece = Piece('G')
+            else:
+                node.colour = 'dimgrey'  # Set color to grey for the border area
+                node.piece = None
+
+            count += 1
             grid[i].append(node)
     return grid
 
-
 def draw_grid(win, rows, width):
     gap = width // ROWS
+
     for i in range(rows):
         pygame.draw.line(win, BLACK, (0, i * gap), (width, i * gap))
         for j in range(rows):
             pygame.draw.line(win, BLACK, (j * gap, 0), (j * gap, width))
 
-RED_PIECES_COUNT = 12
-GREEN_PIECES_COUNT = 12
+            # Draw column labels (a-j) on the first and last row
+            if i == 0 or i == rows - 1:
+                label = chr(ord('a') + j - 1) if 1 <= j <= 8 else ''
+                label_text = BUTTON_FONT.render(label, 1, BLACK)
+                win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
 
+            # Draw row labels (1-8) on the first and last column
+            if j == 0 or j == rows - 1:
+                label = str(i + 0) if 1 <= i <= 8 else ''
+                label_text = BUTTON_FONT.render(label, 1, BLACK)
+                win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
 class Piece:
     def __init__(self, team):
         self.team=team
@@ -96,14 +115,12 @@ class Piece:
     def draw(self, x, y):
         WIN.blit(self.image, (x,y))
 
-
 def getNode(grid, rows, width):
     gap = width//rows
     RowX,RowY = pygame.mouse.get_pos()
     Row = RowX//gap
     Col = RowY//gap
     return (Col,Row)
-
 
 def resetColours(grid, node):
     positions = generatePotentialMoves(node, grid)
@@ -115,40 +132,96 @@ def resetColours(grid, node):
 
 def HighlightpotentialMoves(piecePosition, grid):
     positions = generatePotentialMoves(piecePosition, grid)
+    valid_positions = []
+    forced_captures = hasForcedCaptures(grid, grid[piecePosition[0]][piecePosition[1]].piece.team)
+
     for position in positions:
-        Column,Row = position
-        grid[Column][Row].colour=BLUE
+        Column, Row = position
+        is_valid_move = (forced_captures and abs(position[0] - piecePosition[0]) == 2) or \
+                         (not forced_captures and grid[Column][Row].colour == BLACK)
+        if is_valid_move:
+            valid_positions.append(position)
+            grid[Column][Row].colour = BLUE
+
+    return valid_positions
 
 def opposite(team):
     return "R" if team=="G" else "G"
 
 def generatePotentialMoves(nodePosition, grid):
-    checker = lambda x,y: x+y>=0 and x+y<8
-    positions= []
+    checker = lambda x, y: 1 <= x + y <= 16  # Update to 16
+    positions = []
     column, row = nodePosition
-    if grid[column][row].piece:
-        vectors = [[1, -1], [1, 1]] if grid[column][row].piece.team == "R" else [[-1, -1], [-1, 1]]
-        if grid[column][row].piece.type=='KING':
-            vectors = [[1, -1], [1, 1],[-1, -1], [-1, 1]]
-        for vector in vectors:
-            columnVector, rowVector = vector
-            if checker(columnVector,column) and checker(rowVector,row):
-                #grid[(column+columnVector)][(row+rowVector)].colour=ORANGE
-                if not grid[(column+columnVector)][(row+rowVector)].piece:
-                    positions.append((column + columnVector, row + rowVector))
-                elif grid[column+columnVector][row+rowVector].piece and\
-                        grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team):
 
-                    if checker((2* columnVector), column) and checker((2* rowVector), row) \
-                            and not grid[(2* columnVector)+ column][(2* rowVector) + row].piece:
-                        positions.append((2* columnVector+ column,2* rowVector+ row ))
+    # Check if in the central 8x8 area
+    if 1 <= column <= 8 and 1 <= row <= 8:
+        if grid[column][row].piece:
+            vectors = [[1, -1], [1, 1]] if grid[column][row].piece.team == "R" else [[-1, -1], [-1, 1]]
+            if grid[column][row].piece.type == 'KING':
+                vectors = [[1, -1], [1, 1], [-1, -1], [-1, 1]]
+            for vector in vectors:
+                columnVector, rowVector = vector
+                if checker(columnVector, column) and checker(rowVector, row):
+                    destination = (column + columnVector, row + rowVector)
+                    if not grid[destination[0]][destination[1]].piece and \
+                            1 <= destination[0] <= 8 and 1 <= destination[1] <= 8:
+                        positions.append(destination)
+                    elif grid[destination[0]][destination[1]].piece and \
+                            grid[destination[0]][destination[1]].piece.team == opposite(grid[column][row].piece.team):
+                        jumpDestination = (column + 2 * columnVector, row + 2 * rowVector)
+                        if checker((2 * columnVector), column) and checker((2 * rowVector), row) \
+                                and not grid[jumpDestination[0]][jumpDestination[1]].piece and \
+                                1 <= jumpDestination[0] <= 8 and 1 <= jumpDestination[1] <= 8:
+                            positions.append(jumpDestination)
 
     return positions
 
+def hasForcedCaptures(grid, player):
+    for i in range(ROWS):
+        for j in range(ROWS):
+            if grid[i][j].piece and grid[i][j].piece.team == player:
+                moves = generatePotentialMoves((i, j), grid)
+                for move in moves:
+                    if abs(move[0] - i) == 2:
+                        return True
+    return False
 
-"""
-Error with locating possible moves row col error
-"""
+def check_win_conditions(grid, currMove):
+    if all(grid[i][j].piece is None or grid[i][j].piece.team == currMove for i in range(ROWS) for j in range(ROWS)):
+        return True
+    
+    for i in range(ROWS):
+        for j in range(ROWS):
+            if grid[i][j].piece and grid[i][j].piece.team == opposite(currMove):
+                moves = generatePotentialMoves((i, j), grid)
+                if moves:
+                    return False
+    return True
+
+def game_over_screen(winner):
+    WIN.fill(WHITE)
+
+    game_over_text = GAME_OVER_FONT.render(f"Team {winner} wins!", 1, BLACK)
+    WIN.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, 200))
+
+    exit_button = pygame.draw.rect(WIN, EXIT_BUTTON_COLOR, (WIDTH // 2 - 100, 400, 200, 50))
+    exit_text = BUTTON_FONT.render("Exit", 1, WHITE)
+    WIN.blit(exit_text, (WIDTH // 2 - exit_text.get_width() // 2, 415))
+
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if exit_button.collidepoint(mouse_x, mouse_y):
+                    pygame.quit()
+                    sys.exit()
+
+
 def highlight(ClickedNode, Grid, OldHighlight):
     Column,Row = ClickedNode
     Grid[Column][Row].colour=ORANGE
@@ -158,7 +231,6 @@ def highlight(ClickedNode, Grid, OldHighlight):
     return (Column,Row)
 
 def move(grid, piecePosition, newPosition):
-    global RED_PIECES_COUNT, GREEN_PIECES_COUNT
     resetColours(grid, piecePosition)
     newColumn, newRow = newPosition
     oldColumn, oldRow = piecePosition
@@ -167,134 +239,75 @@ def move(grid, piecePosition, newPosition):
     grid[newColumn][newRow].piece = piece
     grid[oldColumn][oldRow].piece = None
 
-    if newColumn == 7 and grid[newColumn][newRow].piece.team == 'R':
-        grid[newColumn][newRow].piece.type = 'KING'
-        grid[newColumn][newRow].piece.image = REDKING
-    if newColumn == 0 and grid[newColumn][newRow].piece.team == 'G':
+    # Check for kinging conditions
+    if newColumn == 1 and grid[newColumn][newRow].piece.team == 'G':
         grid[newColumn][newRow].piece.type = 'KING'
         grid[newColumn][newRow].piece.image = GREENKING
+        kinged_sound.play()
+    elif newColumn == 8 and grid[newColumn][newRow].piece.team == 'R':
+        grid[newColumn][newRow].piece.type = 'KING'
+        grid[newColumn][newRow].piece.image = REDKING
+        kinged_sound.play()
 
     if abs(newColumn - oldColumn) == 2 or abs(newRow - oldRow) == 2:
         grid[int((newColumn + oldColumn) / 2)][int((newRow + oldRow) / 2)].piece = None
-        if grid[newColumn][newRow].piece.team == 'R':
-            GREEN_PIECES_COUNT -= 1
-        elif grid[newColumn][newRow].piece.team == 'G':
-            RED_PIECES_COUNT -= 1
-
-        # Check for a winner
-        if RED_PIECES_COUNT == 0:
-            print("Green wins!")
-            display_winner("Green", WIDTH) 
-        elif GREEN_PIECES_COUNT == 0:
-            print("Red wins!")
-            display_winner("Red", WIDTH) 
-
         return grid[newColumn][newRow].piece.team
-
     return opposite(grid[newColumn][newRow].piece.team)
 
+def main(WIDTH, ROWS):
+    global game_over
+    grid = make_grid(ROWS, WIDTH)
+    highlightedPiece = None
+    currMove = 'G'
 
-def reset_game():
-    global RED_PIECES_COUNT, GREEN_PIECES_COUNT
-    RED_PIECES_COUNT = 12
-    GREEN_PIECES_COUNT = 12
-
-
-def display_winner(winner, WIDTH):
-    pygame.init()
-    win_size = (int(WIDTH * 0.4), int(WIDTH * 0.3))
-    WIN = pygame.display.set_mode(win_size)
-    pygame.display.set_caption('Game Over')
-
-    font_size = int(WIDTH * 0.05)
-    font = pygame.font.Font(None, font_size)
-    text = font.render(f"{winner} wins!", True, (255, 255, 255))
-    text_rect = text.get_rect(center=(win_size[0] // 2, win_size[1] // 3))
-
-    button_size = (win_size[0] // 3, win_size[1] // 7)
-    play_again_rect = pygame.Rect(win_size[0] // 2 - button_size[0] // 2, int(win_size[1] * 0.6), *button_size)
-    exit_rect = pygame.Rect(win_size[0] // 2 - button_size[0] // 2, int(win_size[1] * 0.75), *button_size)
-
-    button_color = (200, 0, 0)
-    button_text_size = int(WIDTH * 0.03)
-    button_font = pygame.font.Font(None, button_text_size)
-
-    play_again_text = button_font.render("Play Again", True, (255, 255, 255))
-    play_again_text_rect = play_again_text.get_rect(center=play_again_rect.center)
-
-    exit_text = button_font.render("Exit", True, (255, 255, 255))
-    exit_text_rect = exit_text.get_rect(center=exit_rect.center)
-
-    while True:
+    # Main game loop
+    while not game_over:
+        # Check for events
         for event in pygame.event.get():
+            # Window is closed
             if event.type == pygame.QUIT:
                 print('EXIT SUCCESSFUL')
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if play_again_rect.collidepoint(event.pos):
-                    reset_game()  # Reset the game state
-                    return True  # Signal to play again
-                elif exit_rect.collidepoint(event.pos):
-                    print('EXIT SUCCESSFUL')
-                    pygame.quit()
-                    sys.exit()
-
-        WIN.fill((0, 0, 0))
-        pygame.draw.rect(WIN, button_color, play_again_rect)
-        pygame.draw.rect(WIN, button_color, exit_rect)
-        WIN.blit(play_again_text, play_again_text_rect)
-        WIN.blit(exit_text, exit_text_rect)
-        WIN.blit(text, text_rect)
-
-        pygame.display.flip()
-
-
-def main(WIDTH, ROWS):
-    global RED_PIECES_COUNT, GREEN_PIECES_COUNT
-    play_again = True  # Initial value to enter the loop
-
-    while play_again:
-        reset_game()  # Reset the game state
-        grid = make_grid(ROWS, WIDTH)
-        highlightedPiece = None
-        currMove = 'G'
-
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    print('EXIT SUCCESSFUL')
-                    pygame.quit()
-                    sys.exit()
-
-                # Check for the "1" key press to decrement red pieces count
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_1:
-                    RED_PIECES_COUNT = 0
-
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    clickedNode = getNode(grid, ROWS, WIDTH)
+            # Mouse pressed down
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                clickedNode = getNode(grid, ROWS, WIDTH)
+                # Check if clickedNode is not None
+                if clickedNode is not None:
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
+                    # Clicked on a Blue Area
                     if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
-                        if currMove == grid[pieceColumn][pieceRow].piece.team:
-                            resetColours(grid, highlightedPiece)
-                            currMove = move(grid, highlightedPiece, clickedNode)
-                    elif highlightedPiece == clickedNode:
-                        pass
-                    else:
-                        if grid[ClickedPositionColumn][ClickedPositionRow].piece:
-                            if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
-                                highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
+                            # Check if there are forced captures
+                            if hasForcedCaptures(grid, currMove):
+                                print(f"Forced capture available for {currMove}")
+                                # Reset colors before highlighting forced capture path
+                                resetColours(grid, highlightedPiece)
+                                # Get valid forced capture moves
+                                valid_forced_moves = [
+                                    move for move in generatePotentialMoves(highlightedPiece, grid)
+                                    if abs(move[0] - pieceColumn) == 2  # Check if it's a capture move
+                                ]
+                                if clickedNode in valid_forced_moves:
+                                    currMove = move(grid, highlightedPiece, clickedNode)
+                                    game_over = check_win_conditions(grid, currMove)
+                                    if game_over:
+                                        print(f'Team {currMove} wins!')
+                                        game_over_screen(currMove)
+                            # If not in a forced capture scenario, handle regular move
+                            else:
+                                currMove = move(grid, highlightedPiece, clickedNode)
+                                game_over = check_win_conditions(grid, currMove)
+                                if game_over:
+                                    print(f'Team {currMove} wins!')
+                                    game_over_screen(currMove)
+                    # Ensure that ClickedPositionColumn and ClickedPositionRow are assigned before this block
+                    elif grid[ClickedPositionColumn][ClickedPositionRow].piece:
+                        if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
+                            highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
 
-            update_display(WIN, grid, ROWS, WIDTH)
-
-            # Check for a winner after each iteration
-            if RED_PIECES_COUNT == 0 or GREEN_PIECES_COUNT == 0:
-                play_again = display_winner("Green" if RED_PIECES_COUNT == 0 else "Red", WIDTH)
-                if play_again:
-                    break  # Break out of the inner loop to reset the game
+        update_display(WIN, grid, ROWS, WIDTH)
 
 main(WIDTH, ROWS)
-
 
