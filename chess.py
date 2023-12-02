@@ -175,8 +175,64 @@ def generatePotentialMoves(nodePosition, grid):
     column, row = nodePosition
     if grid[column][row].piece:
         vectors = [[1, -1], [1, 1]] if grid[column][row].piece.team == "B" else [[-1, -1], [-1, 1]]
+<<<<<<< Updated upstream
         if grid[column][row].piece.type=='KING':
             vectors = [[1, -1], [1, 1],[-1, -1], [-1, 1]]
+=======
+        
+        if grid[column][row].piece.name =='PAWN':
+            if grid[column][row].piece.team =='W':
+                vectors = [[-1, 0]]
+                if grid[column][row].piece.hasMoved == False:
+                    vectors = [[-1, 0], [-2, 0]]
+                
+            else:
+                vectors = [[1, 0]]
+                if grid[column][row].piece.hasMoved == False:
+                    vectors = [[1, 0], [2, 0]]
+
+        if grid[column][row].piece.name =='KNIGHT':
+            vectors = [[-2, 1], [-2, -1], [-1, 2], [-1, -2], [1, -2], [1, 2], [2, -1], [2, 1]] 
+
+        if grid[column][row].piece.name =='KING':
+            vectors = [[1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1]] 
+
+        if grid[column][row].piece.name == 'ROOK':
+            
+        if grid[column][row].piece.name == 'KNIGHT'
+        
+        
+        '''if grid[column][row].piece.name =='BISHOP':
+
+            for i in range(4):
+                path = True
+                chain = 1
+                if i == 0:
+                    x = 1
+                    y = -1
+                elif i == 1:
+                    x = -1
+                    y = -1
+                elif i == 2:
+                    x = 1
+                    y = 1
+                else:
+                    x = -1
+                    y = 1
+                while path:
+                    if grid[column + x][row + 1]
+
+
+                    if (piece[0] + (chain * x), piece[1] + (chain * y)) not in friends_list and \
+                            0 <= position[0] + (chain * x) <= 7 and 0 <= position[1] + (chain * y) <= 7:
+                        moves_list.append((position[0] + (chain * x), position[1] + (chain * y)))
+                        if (position[0] + (chain * x), position[1] + (chain * y)) in enemies_list:
+                            path = False
+                        chain += 1
+                    else:
+                        path = False'''
+
+>>>>>>> Stashed changes
         for vector in vectors:
             columnVector, rowVector = vector
             if checker(columnVector,column) and checker(rowVector,row):
