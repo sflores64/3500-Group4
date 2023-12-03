@@ -7,9 +7,11 @@ from itertools import combinations
 # current directory
 dirname = os.path.dirname(__file__)
 
+# set board width and set number of rows
 WIDTH = 800
 ROWS = 8
 
+# load images for pieces
 B_BISHOP = pygame.image.load(os.path.join(dirname, 'images2/b_bishop.png'))
 B_KING = pygame.image.load(os.path.join(dirname, 'images2/b_king.png'))
 B_KNIGHT = pygame.image.load(os.path.join(dirname, 'images2/b_knight.png'))
@@ -23,12 +25,12 @@ W_PAWN = pygame.image.load(os.path.join(dirname, 'images2/w_pawn.png'))
 W_QUEEN = pygame.image.load(os.path.join(dirname, 'images2/w_queen.png'))
 W_ROOK = pygame.image.load(os.path.join(dirname, 'images2/w_rook.png'))
 
-DARK = (118, 150, 86)
-LIGHT = (238, 238, 210)
+DARK = (118, 150, 86) # dark green
+LIGHT = (238, 238, 210) #light green
 
 BLUE = (76, 252, 241)
 BLACK = (0,0,0)
-ORANGE = (186,202,68)
+ORANGE = (186,202,68) #actually yellow
 WHITE = (255,255,255)
 
 
@@ -36,6 +38,7 @@ pygame.init()
 SCREEN = pygame.display.set_mode((WIDTH,WIDTH))
 pygame.display.set_caption('Chess')
 
+# keeps track of squares on the board
 class Node:
 
     def __init__(self, row, col, width):
@@ -51,6 +54,7 @@ class Node:
         if self.piece:
             SCREEN.blit(self.piece.image, (self.x, self.y))
 
+# updates display, including board anf pieces
 def update_display(win, grid, rows, width):
     for row in grid:
         for spot in row:
@@ -58,7 +62,7 @@ def update_display(win, grid, rows, width):
     draw_grid(win, rows, width)
     pygame.display.update()
 
-
+# initial board creator with pieces, sets them to corret spots
 def make_grid(rows, width):
     grid = []
     gap = width//rows
@@ -93,15 +97,11 @@ def make_grid(rows, width):
                 node.piece = Piece('KING', 'W')
             elif count > 47 and count < 56:
                 node.piece = Piece('PAWN', 'W')
-            #if (abs(i+j)%2==0) and (i<3):
-                #node.piece = Piece('R')
-            #elif(abs(i+j)%2==0) and i>4:
-                #node.piece=Piece('G')
             count += 1
             grid[i].append(node)
     return grid
 
-
+# used to draw the board, along with pieces
 def draw_grid(win, rows, width):
     gap = width // ROWS
     for i in range(rows):
@@ -109,6 +109,7 @@ def draw_grid(win, rows, width):
         for j in range(rows):
             pygame.draw.line(win, DARK, (j * gap, 0), (j * gap, width))
 
+# holds the difference pieces on the board
 class Piece:
     def __init__(self, name, team):
         self.name = name
@@ -141,11 +142,12 @@ class Piece:
                 self.image = W_PAWN
 
         self.type=None
-        self.hasMoved = False
+        self.hasMoved = False # for pawns, rooks, and kings
 
     def draw(self, x, y):
         SCREEN.blit(self.image, (x,y))
 
+# used to determine what column/row was clicked
 def getNode(grid, rows, width):
     gap = width//rows
     RowX,RowY = pygame.mouse.get_pos()
@@ -153,6 +155,7 @@ def getNode(grid, rows, width):
     Col = RowY//gap
     return (Col,Row)
 
+# resets colors back to original, used if changes occur
 def resetColours(grid, node):
     positions = generatePotentialMoves(node, grid)
     positions.append(node)
@@ -161,83 +164,154 @@ def resetColours(grid, node):
         nodeX, nodeY = colouredNodes
         grid[nodeX][nodeY].colour = LIGHT if abs(nodeX - nodeY) % 2 == 0 else DARK
 
+# changes color of spaces a piece can move to
 def HighlightpotentialMoves(piecePosition, grid):
     positions = generatePotentialMoves(piecePosition, grid)
     for position in positions:
         Column,Row = position
         grid[Column][Row].colour=BLUE
 
+# function to check the color of the piece
 def opposite(team):
     return "W" if team=="B" else "B"
 
+# calculate moves a piece can take
 def generatePotentialMoves(nodePosition, grid):
     piece = lambda x,y: x+y>=0 and x+y<8
     positions= []
+    vectors = []
     column, row = nodePosition
     if grid[column][row].piece:
-        vectors = [[1, -1], [1, 1]] if grid[column][row].piece.team == "B" else [[-1, -1], [-1, 1]]
         
+        # pawn moveset
         if grid[column][row].piece.name =='PAWN':
             if grid[column][row].piece.team =='W':
                 vectors = [[-1, 0]]
-                if grid[column][row].piece.hasMoved == False:
+                if grid[column][row].piece.hasMoved == False and not grid[column - 1][row].piece:
                     vectors = [[-1, 0], [-2, 0]]
                 
             else:
                 vectors = [[1, 0]]
-                if grid[column][row].piece.hasMoved == False:
-                    vectors = [[1, 0], [2, 0]]
+                if grid[column][row].piece.hasMoved == False and not grid[column + 1][row].piece:
+                    vectors = [[1, 0], [2, 0]]           
 
+        # knight moveset
         if grid[column][row].piece.name =='KNIGHT':
             vectors = [[-2, 1], [-2, -1], [-1, 2], [-1, -2], [1, -2], [1, 2], [2, -1], [2, 1]] 
 
+        # king moveset
         if grid[column][row].piece.name =='KING':
             vectors = [[1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1]] 
 
-        '''if grid[column][row].piece.name =='BISHOP':
-            for i in range(4):
-                path = True
-                chain = 1
-                if i == 0:
-                    x = 1
-                    y = -1
-                elif i == 1:
-                    x = -1
-                    y = -1
-                elif i == 2:
-                    x = 1
-                    y = 1
-                else:
-                    x = -1
-                    y = 1
-                while path:
-                    if grid[column + x][row + 1]
+        # rook moveset
+        if grid[column][row].piece.name =='ROOK':
+            up = down = left = right = 1
+            while column - up >= 0 and not grid[column - up][row].piece:
+                vectors.append([-up, 0])
+                up += 1
+            if column - up >= 0 and grid[column - up][row].piece and grid[column - up][row].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([-up, 0])
+            while 0 <= column + down < 8 and not grid[column + down][row].piece:
+                vectors.append([down, 0])
+                down += 1
+            if column + down < 8 and grid[column + down][row].piece and grid[column + down][row].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([down, 0])
+            while 0 <= row - left < 8 and not grid[column][row - left].piece:
+                vectors.append([0, -left])
+                left += 1
+            if row - left >= 0 and grid[column][row - left].piece and grid[column][row - left].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([0, -left])
+            while 0 <= row + right < 8 and not grid[column][row + right].piece:
+                vectors.append([0, right])
+                right += 1
+            if row + right < 8 and grid[column][row + right].piece and grid[column][row + right].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([0, right])
+
+        # bishop moveset
+        if grid[column][row].piece.name =='BISHOP':
+            upLeft = upRight = downLeft = downRight = 1
+            while 0 <= column - upLeft < 8 and 0 <= row - upLeft < 8 and not grid[column - upLeft][row - upLeft].piece:
+                vectors.append([-upLeft, -upLeft])
+                upLeft += 1
+            if column - upLeft >= 0 and row - upLeft >= 0 and grid[column - upLeft][row - upLeft].piece and grid[column - upLeft][row - upLeft].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([-upLeft, -upLeft])
+            while 0 <= column - upRight < 8 and 0 <= row + upRight < 8 and not grid[column - upRight][row + upRight].piece:
+                vectors.append([-upRight, upRight])
+                upRight += 1
+            if column - upRight >= 0 and row + upRight < 8 and grid[column - upRight][row + upRight].piece and grid[column - upRight][row + upRight].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([-upRight, upRight])
+            while 0 <= column + downLeft < 8 and 0 <= row - downLeft < 8 and not grid[column + downLeft][row - downLeft].piece:
+                vectors.append([downLeft, -downLeft])
+                downLeft += 1
+            if column + downLeft < 8 and row - downLeft >= 0 and grid[column + downLeft][row - downLeft].piece and grid[column + downLeft][row - downLeft].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([downLeft, -downLeft])
+            while 0 <= column + downRight < 8 and 0 <= row + downRight < 8 and not grid[column + downRight][row + downRight].piece:
+                vectors.append([downRight, downRight])
+                downRight += 1
+            if column + downRight < 8 and row + downRight < 8 and grid[column + downRight][row + downRight].piece and grid[column + downRight][row + downRight].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([downRight, downRight])
+
+        # queen moveset is rook moveset + bishop moveset
+        if grid[column][row].piece.name =='QUEEN':
+            up = down = left = right = 1
+            upLeft = upRight = downLeft = downRight = 1
+            while column - up >= 0 and not grid[column - up][row].piece:
+                vectors.append([-up, 0])
+                up += 1
+            if column - up >= 0 and grid[column - up][row].piece and grid[column - up][row].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([-up, 0])
+            while 0 <= column + down < 8 and not grid[column + down][row].piece:
+                vectors.append([down, 0])
+                down += 1
+            if column + down < 8 and grid[column + down][row].piece and grid[column + down][row].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([down, 0])
+            while 0 <= row - left < 8 and not grid[column][row - left].piece:
+                vectors.append([0, -left])
+                left += 1
+            if row - left >= 0 and grid[column][row - left].piece and grid[column][row - left].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([0, -left])
+            while 0 <= row + right < 8 and not grid[column][row + right].piece:
+                vectors.append([0, right])
+                right += 1
+            if row + right < 8 and grid[column][row + right].piece and grid[column][row + right].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([0, right])
+            while 0 <= column - upLeft < 8 and 0 <= row - upLeft < 8 and not grid[column - upLeft][row - upLeft].piece:
+                vectors.append([-upLeft, -upLeft])
+                upLeft += 1
+            if column - upLeft >= 0 and row - upLeft >= 0 and grid[column - upLeft][row - upLeft].piece and grid[column - upLeft][row - upLeft].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([-upLeft, -upLeft])
+            while 0 <= column - upRight < 8 and 0 <= row + upRight < 8 and not grid[column - upRight][row + upRight].piece:
+                vectors.append([-upRight, upRight])
+                upRight += 1
+            if column - upRight >= 0 and row + upRight < 8 and grid[column - upRight][row + upRight].piece and grid[column - upRight][row + upRight].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([-upRight, upRight])
+            while 0 <= column + downLeft < 8 and 0 <= row - downLeft < 8 and not grid[column + downLeft][row - downLeft].piece:
+                vectors.append([downLeft, -downLeft])
+                downLeft += 1
+            if column + downLeft < 8 and row - downLeft >= 0 and grid[column + downLeft][row - downLeft].piece and grid[column + downLeft][row - downLeft].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([downLeft, -downLeft])
+            while 0 <= column + downRight < 8 and 0 <= row + downRight < 8 and not grid[column + downRight][row + downRight].piece:
+                vectors.append([downRight, downRight])
+                downRight += 1
+            if column + downRight < 8 and row + downRight < 8 and grid[column + downRight][row + downRight].piece and grid[column + downRight][row + downRight].piece.team == opposite(grid[column][row].piece.team):
+                vectors.append([downRight, downRight])
 
 
-                    if (piece[0] + (chain * x), piece[1] + (chain * y)) not in friends_list and \
-                            0 <= position[0] + (chain * x) <= 7 and 0 <= position[1] + (chain * y) <= 7:
-                        moves_list.append((position[0] + (chain * x), position[1] + (chain * y)))
-                        if (position[0] + (chain * x), position[1] + (chain * y)) in enemies_list:
-                            path = False
-                        chain += 1
-                    else:
-                        path = False'''
 
+        # determines what will happen when piece moves into new grid slot
         for vector in vectors:
             columnVector, rowVector = vector
             if piece(columnVector,column) and piece(rowVector,row):
-                #grid[(column+columnVector)][(row+rowVector)].colour=ORANGE
                 if not grid[(column+columnVector)][(row+rowVector)].piece:
                     positions.append((column + columnVector, row + rowVector))
                 elif grid[column+columnVector][row+rowVector].piece and\
-                        grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team):
-
-                    '''if piece((2* columnVector), column) and piece((2* rowVector), row) \
-                            and not grid[(2* columnVector)+ column][(2* rowVector) + row].piece:
-                        positions.append((2* columnVector+ column,2* rowVector+ row ))'''
+                        grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team) and\
+                        grid[column][row].piece.name != 'PAWN':
+                    positions.append([column+columnVector, row+rowVector])
 
     return positions
 
+# highlights clicked piece on board
 def highlight(ClickedNode, Grid, OldHighlight):
     Column,Row = ClickedNode
     Grid[Column][Row].colour=ORANGE
@@ -246,6 +320,7 @@ def highlight(ClickedNode, Grid, OldHighlight):
     HighlightpotentialMoves(ClickedNode, Grid)
     return (Column,Row)
 
+# moves piece into new position
 def move(grid, piecePosition, newPosition):
     resetColours(grid, piecePosition)
     newColumn, newRow = newPosition
@@ -271,6 +346,7 @@ def main(WIDTH, ROWS):
                 pygame.quit()
                 sys.exit()
 
+            # what happens when a node is clicked
             if event.type == pygame.MOUSEBUTTONDOWN:
                 clickedNode = getNode(grid, ROWS, WIDTH)
                 ClickedPositionColumn, ClickedPositionRow = clickedNode
