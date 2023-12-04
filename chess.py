@@ -33,6 +33,9 @@ BLACK = (0,0,0)
 ORANGE = (186,202,68) #actually yellow
 WHITE = (255,255,255)
 
+win = ''  # flag to determine end of game and winner. Set to empty until a king is checkmated.
+click = False
+
 
 pygame.init()
 SCREEN = pygame.display.set_mode((WIDTH,WIDTH))
@@ -303,14 +306,32 @@ def generatePotentialMoves(nodePosition, grid):
             columnVector, rowVector = vector
             if piece(columnVector,column) and piece(rowVector,row):
                 if not grid[(column+columnVector)][(row+rowVector)].piece:
-                    positions.append((column + columnVector, row + rowVector))
+                    if grid[column][row].piece.name == 'KING': #checking to make sure Kings cannot move into vulnerable spots.
+                        enemyList = getEnemyList(opposite(grid[column][row].piece.team), grid)
+                        if (column + columnVector, row + rowVector) not in enemyList:
+                            positions.append((column + columnVector, row + rowVector))
+                    else: 
+                        positions.append((column + columnVector, row + rowVector))
                 elif grid[column+columnVector][row+rowVector].piece and\
                         grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team) and\
                         grid[column][row].piece.name != 'PAWN':
                     positions.append([column+columnVector, row+rowVector])
-
     return positions
 
+# function for getting a list of all possible enemy moves to prevent the King from being able to move there
+def getEnemyList(enemyTeam, grid):
+    enemyList = []
+    for i in range(8):
+        for j in range(8): # these for loops cycle through the whole board
+            if grid[i][j].piece:
+                if grid[i][j].piece.team==enemyTeam and grid[i][j].piece.name != 'KING': # checking if the piece is a piece, is an enemy, and is not a King
+                    enemyList.extend(generatePotentialMoves((i, j), grid))  # Code absolutely CANNOT call gPM function on a King, as it will recursively break.
+                elif grid[i][j].piece.team==enemyTeam and grid[i][j].piece.name == 'KING': # So here it will add all squares around enemy King to enemyList, to make sure.
+                    for x in range(-1, 2):
+                        for y in range(-1, 2):
+                            enemyList.append((i+x, j+y)) # this adds each coordinate around the enemy King one-by-one.
+    return enemyList
+                    
 # highlights clicked piece on board
 def highlight(ClickedNode, Grid, OldHighlight):
     Column,Row = ClickedNode
