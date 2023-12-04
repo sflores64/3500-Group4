@@ -1,3 +1,13 @@
+########################################################
+# NAME: GROUP 4
+# ASGT: Class Project
+# ORGN: CSUB - CMPS 3500
+# FILE: chess.py
+# DATE: 12/03/2023
+# This is a program that will simulate a chess board
+# and provide basic game functionalities.
+# This program does not abide all rules of chess
+########################################################
 import os
 import pygame
 import random
@@ -31,10 +41,12 @@ LIGHT = (238, 238, 210) #light green
 BLUE = (76, 252, 241)
 BLACK = (0,0,0)
 ORANGE = (186,202,68) #actually yellow
+YELLOW = (235, 168, 52) #actually orange
 WHITE = (255,255,255)
+RED = (255, 0, 0)
 
 win = ''  # flag to determine end of game and winner. Set to empty until a king is checkmated.
-click = False
+
 
 
 pygame.init()
@@ -172,7 +184,10 @@ def HighlightpotentialMoves(piecePosition, grid):
     positions = generatePotentialMoves(piecePosition, grid)
     for position in positions:
         Column,Row = position
-        grid[Column][Row].colour=BLUE
+        if grid[Column][Row].piece:
+            grid[Column][Row].colour = RED
+        else:
+            grid[Column][Row].colour=BLUE
 
 # function to check the color of the piece
 def opposite(team):
@@ -192,11 +207,20 @@ def generatePotentialMoves(nodePosition, grid):
                 vectors = [[-1, 0]]
                 if grid[column][row].piece.hasMoved == False and not grid[column - 1][row].piece:
                     vectors = [[-1, 0], [-2, 0]]
-                
+                if row >= 0 and column >= 0 and grid[column - 1][row - 1].piece and grid[column - 1][row - 1].piece.team == opposite(grid[column][row].piece.team):
+                    vectors.append([-1, -1])
+                if row < 7 and column >= 0 and grid[column - 1][row + 1].piece and grid[column - 1][row + 1].piece.team == opposite(grid[column][row].piece.team):
+                    vectors.append([-1, 1])
             else:
                 vectors = [[1, 0]]
                 if grid[column][row].piece.hasMoved == False and not grid[column + 1][row].piece:
-                    vectors = [[1, 0], [2, 0]]           
+                    vectors = [[1, 0], [2, 0]]  
+                if row < 7 and grid[column + 1][row + 1].piece and grid[column + 1][row + 1].piece.team == opposite(grid[column][row].piece.team):
+                    vectors.append([1, 1])
+                if row >= 0 and grid[column + 1][row - 1].piece and grid[column + 1][row - 1].piece.team == opposite(grid[column][row].piece.team):
+                    vectors.append([1, -1])
+                
+         
 
         # knight moveset
         if grid[column][row].piece.name =='KNIGHT':
@@ -301,7 +325,7 @@ def generatePotentialMoves(nodePosition, grid):
 
 
 
-        # determines what will happen when piece moves into new grid slot
+        # determines what will happen if piece moves into new grid slot?
         for vector in vectors:
             columnVector, rowVector = vector
             if piece(columnVector,column) and piece(rowVector,row):
@@ -316,6 +340,12 @@ def generatePotentialMoves(nodePosition, grid):
                         grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team) and\
                         grid[column][row].piece.name != 'PAWN':
                     positions.append([column+columnVector, row+rowVector])
+                elif grid[column+columnVector][row+rowVector].piece and\
+                        grid[column+columnVector][row+rowVector].piece.team==opposite(grid[column][row].piece.team) and\
+                        grid[column][row].piece.name == 'PAWN' and\
+                        rowVector != 0:
+                    positions.append([column+columnVector, row+rowVector])
+
     return positions
 
 # function for getting a list of all possible enemy moves to prevent the King from being able to move there
@@ -371,7 +401,7 @@ def main(WIDTH, ROWS):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 clickedNode = getNode(grid, ROWS, WIDTH)
                 ClickedPositionColumn, ClickedPositionRow = clickedNode
-                if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE or grid[ClickedPositionColumn][ClickedPositionRow].colour == RED:
                     if highlightedPiece:
                         pieceColumn, pieceRow = highlightedPiece
                     if currMove == grid[pieceColumn][pieceRow].piece.team:
