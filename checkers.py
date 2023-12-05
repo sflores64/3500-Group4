@@ -1,22 +1,22 @@
+# Import necessary libraries
 import pygame
 import random
 import sys
 from itertools import combinations
 import os
 
-
-# Constants 
+# Constants
 WIDTH = 1000
 ROWS = 10
-WHITE = (255,255,255)
-BLACK = (0,0,0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
 
 # Load images
 dirname = os.path.dirname(__file__)
-RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
-GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
+RED = pygame.image.load(os.path.join(dirname, 'images/red.png'))
+GREEN = pygame.image.load(os.path.join(dirname, 'images/green.png'))
 REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
 GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
 
@@ -29,7 +29,7 @@ pygame.mixer.init()
 kinged_sound = pygame.mixer.Sound('sounds/chime.wav')
 
 # Set up game window
-WIN = pygame.display.set_mode((WIDTH,WIDTH))
+WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption('Checkers')
 
 # Fonts
@@ -39,8 +39,10 @@ EXIT_BUTTON_COLOR = (200, 0, 0)
 
 # Global Variables
 game_over = False
-priorMoves=[]
+priorMoves = []
 
+
+# Class representing a grid node
 class Node:
     def __init__(self, row, col, width):
         self.row = row
@@ -55,6 +57,7 @@ class Node:
         if self.piece:
             WIN.blit(self.piece.image, (self.x, self.y))
 
+# Function to update the display
 def update_display(win, grid, rows, width):
     for row in grid:
         for spot in row:
@@ -62,6 +65,7 @@ def update_display(win, grid, rows, width):
     draw_grid(win, rows, width)
     pygame.display.update()
 
+# Function to create the game grid
 def make_grid(rows, width):
     grid = []
     gap = width // rows
@@ -80,13 +84,14 @@ def make_grid(rows, width):
                 elif (abs(i + j) % 2 == 0) and i > 5:
                     node.piece = Piece('G')
             else:
-                node.colour = 'dimgrey'  # Set color to grey for the border area
+                node.colour = (33, 33, 33)  # Set color to grey for the border area
                 node.piece = None
 
             count += 1
             grid[i].append(node)
     return grid
 
+# Function to draw the grid lines
 def draw_grid(win, rows, width):
     gap = width // ROWS
 
@@ -98,30 +103,34 @@ def draw_grid(win, rows, width):
             # Draw column labels (a-j) on the first and last row
             if i == 0 or i == rows - 1:
                 label = chr(ord('a') + j - 1) if 1 <= j <= 8 else ''
-                label_text = BUTTON_FONT.render(label, 1, BLACK)
+                label_text = BUTTON_FONT.render(label, 1, WHITE)
                 win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
 
             # Draw row labels (1-8) on the first and last column
             if j == 0 or j == rows - 1:
                 label = str(i + 0) if 1 <= i <= 8 else ''
-                label_text = BUTTON_FONT.render(label, 1, BLACK)
+                label_text = BUTTON_FONT.render(label, 1, WHITE)
                 win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
+
+# Class representing a checkers piece
 class Piece:
     def __init__(self, team):
-        self.team=team
-        self.image= RED if self.team=='R' else GREEN
-        self.type=None
+        self.team = team
+        self.image = RED if self.team == 'R' else GREEN
+        self.type = None
 
     def draw(self, x, y):
-        WIN.blit(self.image, (x,y))
+        WIN.blit(self.image, (x, y))
 
+# Function to get the current node based on mouse position
 def getNode(grid, rows, width):
-    gap = width//rows
-    RowX,RowY = pygame.mouse.get_pos()
-    Row = RowX//gap
-    Col = RowY//gap
-    return (Col,Row)
+    gap = width // rows
+    RowX, RowY = pygame.mouse.get_pos()
+    Row = RowX // gap
+    Col = RowY // gap
+    return (Col, Row)
 
+# Function to reset colors of nodes
 def resetColours(grid, node):
     positions = generatePotentialMoves(node, grid)
     positions.append(node)
@@ -130,6 +139,7 @@ def resetColours(grid, node):
         nodeX, nodeY = colouredNodes
         grid[nodeX][nodeY].colour = BLACK if abs(nodeX - nodeY) % 2 == 0 else WHITE
 
+# Function to highlight potential moves for a piece
 def HighlightpotentialMoves(piecePosition, grid):
     positions = generatePotentialMoves(piecePosition, grid)
     valid_positions = []
@@ -138,16 +148,19 @@ def HighlightpotentialMoves(piecePosition, grid):
     for position in positions:
         Column, Row = position
         is_valid_move = (forced_captures and abs(position[0] - piecePosition[0]) == 2) or \
-                         (not forced_captures and grid[Column][Row].colour == BLACK)
+                        (not forced_captures and grid[Column][Row].colour == BLACK)
         if is_valid_move:
             valid_positions.append(position)
             grid[Column][Row].colour = BLUE
 
     return valid_positions
 
-def opposite(team):
-    return "R" if team=="G" else "G"
 
+# Function to determine the opposite team
+def opposite(team):
+    return "R" if team == "G" else "G"
+
+# Function to generate potential moves for a given node
 def generatePotentialMoves(nodePosition, grid):
     checker = lambda x, y: 1 <= x + y <= 16  # Update to 16
     positions = []
@@ -176,6 +189,8 @@ def generatePotentialMoves(nodePosition, grid):
 
     return positions
 
+
+# Function to check if forced captures are available
 def hasForcedCaptures(grid, player):
     for i in range(ROWS):
         for j in range(ROWS):
@@ -186,6 +201,23 @@ def hasForcedCaptures(grid, player):
                         return True
     return False
 
+# Function to recursively check for multiple captures
+def checkForMultipleCaptures(grid, position, captured_pieces):
+    moves = generatePotentialMoves(position, grid)
+    forced_captures = []
+
+    for move in moves:
+        if abs(move[0] - position[0]) == 2:
+            captured_position = ((move[0] + position[0]) // 2, (move[1] + position[1]) // 2)
+            if captured_position not in captured_pieces:
+                forced_captures.append(move)
+                captured_pieces.add(captured_position)
+                # Recursive call to check for more captures
+                forced_captures += checkForMultipleCaptures(grid, move, captured_pieces)
+
+    return forced_captures
+
+# Function to check win conditions
 def check_win_conditions(grid, currMove):
     if all(grid[i][j].piece is None or grid[i][j].piece.team == currMove for i in range(ROWS) for j in range(ROWS)):
         return True
@@ -198,6 +230,7 @@ def check_win_conditions(grid, currMove):
                     return False
     return True
 
+# Function to display the game over screen
 def game_over_screen(winner):
     WIN.fill(WHITE)
 
@@ -221,15 +254,16 @@ def game_over_screen(winner):
                     pygame.quit()
                     sys.exit()
 
-
+# Function to highlight nodes and handle moves
 def highlight(ClickedNode, Grid, OldHighlight):
-    Column,Row = ClickedNode
-    Grid[Column][Row].colour=ORANGE
+    Column, Row = ClickedNode
+    Grid[Column][Row].colour = ORANGE
     if OldHighlight:
         resetColours(Grid, OldHighlight)
     HighlightpotentialMoves(ClickedNode, Grid)
-    return (Column,Row)
+    return (Column, Row)
 
+# Function to handle piece movement
 def move(grid, piecePosition, newPosition):
     resetColours(grid, piecePosition)
     newColumn, newRow = newPosition
@@ -258,7 +292,8 @@ def main(WIDTH, ROWS):
     global game_over
     grid = make_grid(ROWS, WIDTH)
     highlightedPiece = None
-    currMove = 'G'
+    currMove = 'G'  # Start with GREEN's turn
+    capture_in_progress = False
 
     # Main game loop
     while not game_over:
@@ -279,35 +314,27 @@ def main(WIDTH, ROWS):
                     if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
-                            # Check if there are forced captures
-                            if hasForcedCaptures(grid, currMove):
-                                print(f"Forced capture available for {currMove}")
-                                # Reset colors before highlighting forced capture path
-                                resetColours(grid, highlightedPiece)
-                                # Get valid forced capture moves
-                                valid_forced_moves = [
-                                    move for move in generatePotentialMoves(highlightedPiece, grid)
-                                    if abs(move[0] - pieceColumn) == 2  # Check if it's a capture move
-                                ]
-                                if clickedNode in valid_forced_moves:
-                                    currMove = move(grid, highlightedPiece, clickedNode)
-                                    game_over = check_win_conditions(grid, currMove)
-                                    if game_over:
-                                        print(f'Team {currMove} wins!')
-                                        game_over_screen(currMove)
-                            # If not in a forced capture scenario, handle regular move
+                            move(grid, highlightedPiece, clickedNode)
+                            # Check for multiple captures
+                            captured_pieces = {(pieceColumn, pieceRow), (ClickedPositionColumn, ClickedPositionRow)}
+                            multiple_captures = checkForMultipleCaptures(grid, clickedNode, captured_pieces)
+                            if not multiple_captures or not capture_in_progress:
+                                currMove = 'G' if currMove == 'R' else 'R'
+                                highlightedPiece = None
+                                capture_in_progress = False
                             else:
-                                currMove = move(grid, highlightedPiece, clickedNode)
-                                game_over = check_win_conditions(grid, currMove)
-                                if game_over:
-                                    print(f'Team {currMove} wins!')
-                                    game_over_screen(currMove)
+                                # If there are multiple captures and capture is in progress, keep the same player's turn
+                                highlightedPiece = clickedNode
+                                capture_in_progress = True if multiple_captures else False
+                        # If clicked on an empty blue cell without selecting a piece, ignore the click
+
                     # Ensure that ClickedPositionColumn and ClickedPositionRow are assigned before this block
                     elif grid[ClickedPositionColumn][ClickedPositionRow].piece:
                         if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
                             highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
+                            capture_in_progress = hasForcedCaptures(grid, currMove)
 
         update_display(WIN, grid, ROWS, WIDTH)
 
+# Run the game
 main(WIDTH, ROWS)
-
