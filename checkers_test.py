@@ -1,3 +1,15 @@
+# course: CMPS 3500
+# CLASS Project
+# PYTHON IMPLEMENTATION: Checker Test Cases
+# Updated: 12/7/2023
+# Student 1: Edwin Aviles
+# Student 2: Sandra Materio
+# Student 3: Ricardo Rivas Navarro
+# Student 4: Jason Rodriguez
+# description: Contains a preset board for testing. 
+#              Press '1' to reset board 
+#              Press Space to set up test case
+ 
 import pygame
 import random
 import sys

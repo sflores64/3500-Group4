@@ -1,3 +1,15 @@
+######################################
+# CMPS 3500 - Class Project
+# Updated: 12/7/2023
+# File: checkers.py
+# Name 1: Edwin Aviles
+# Name 2: Sandra Mateiro 
+# Name 3: Ricardo Rivas Navarro
+# Name 4: Jason Rodriguez
+# Description: Runs a default game of checkers ( press '1' for )
+#
+######################################
+
 import pygame
 import random
 import sys
