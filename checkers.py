@@ -358,10 +358,12 @@ def main(WIDTH, ROWS):
                 if event.key == pygame.K_SPACE:
                     print("First preset")
                     set_up_custom_board(grid)
+                    currMove = 'G'
                 
                 if event.key == pygame.K_1:
                     print("Base case")
                     grid = make_grid(ROWS, WIDTH)
+                    currMove = 'G'
 
             # Mouse pressed down
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -401,10 +403,6 @@ def main(WIDTH, ROWS):
             game_over = game_over_screen(opposite(currMove))
             if not game_over:  # If "Play Again" is pressed, reset game_over to False
                 grid = make_grid(ROWS, WIDTH)
-            
-
-        
-
         # Update the display
         update_display(WIN, grid, ROWS, WIDTH)
 
