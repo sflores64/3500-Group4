@@ -1,4 +1,3 @@
-# Import necessary libraries
 import pygame
 import random
 import sys
@@ -40,8 +39,7 @@ EXIT_BUTTON_COLOR = (200, 0, 0)
 # Global Variables
 game_over = False
 priorMoves = []
-
-
+  
 # Class representing a grid node
 class Node:
     def __init__(self, row, col, width):
@@ -219,9 +217,11 @@ def checkForMultipleCaptures(grid, position, captured_pieces):
 
 # Function to check win conditions
 def check_win_conditions(grid, currMove):
-    if all(grid[i][j].piece is None or grid[i][j].piece.team == currMove for i in range(ROWS) for j in range(ROWS)):
+    # Check if the current player has no pieces left
+    if all(grid[i][j].piece is None or grid[i][j].piece.team != currMove for i in range(ROWS) for j in range(ROWS)):
         return True
-    
+
+    # Check if the opposing player has no available moves
     for i in range(ROWS):
         for j in range(ROWS):
             if grid[i][j].piece and grid[i][j].piece.team == opposite(currMove):
@@ -230,16 +230,27 @@ def check_win_conditions(grid, currMove):
                     return False
     return True
 
+
 # Function to display the game over screen
 def game_over_screen(winner):
+    global grid  # Declare grid as a global variable
     WIN.fill(WHITE)
 
     game_over_text = GAME_OVER_FONT.render(f"Team {winner} wins!", 1, BLACK)
-    WIN.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, 200))
+    text_rect = game_over_text.get_rect(center=(WIDTH // 2, 200))
+    WIN.blit(game_over_text, text_rect)
 
-    exit_button = pygame.draw.rect(WIN, EXIT_BUTTON_COLOR, (WIDTH // 2 - 100, 400, 200, 50))
+    # Exit button
+    exit_button = pygame.draw.rect(WIN, EXIT_BUTTON_COLOR, (WIDTH // 2 - 125, 400, 250, 50))
     exit_text = BUTTON_FONT.render("Exit", 1, WHITE)
-    WIN.blit(exit_text, (WIDTH // 2 - exit_text.get_width() // 2, 415))
+    text_rect = exit_text.get_rect(center=(WIDTH // 2, 420))
+    WIN.blit(exit_text, text_rect)
+
+    # Play Again button 
+    play_again_button = pygame.draw.rect(WIN, EXIT_BUTTON_COLOR, (WIDTH // 2 - 125, 475, 250, 50))
+    play_again_text = BUTTON_FONT.render("Play Again", 1, WHITE)
+    text_rect = play_again_text.get_rect(center=(WIDTH // 2, 495))
+    WIN.blit(play_again_text, text_rect)
 
     pygame.display.update()
 
@@ -253,7 +264,11 @@ def game_over_screen(winner):
                 if exit_button.collidepoint(mouse_x, mouse_y):
                     pygame.quit()
                     sys.exit()
+                elif play_again_button.collidepoint(mouse_x, mouse_y):
+                    print("play again pressed")
+                    return  # Exit the function, breaking out of the infinite loop
 
+                    
 # Function to highlight nodes and handle moves
 def highlight(ClickedNode, Grid, OldHighlight):
     Column, Row = ClickedNode
@@ -287,6 +302,41 @@ def move(grid, piecePosition, newPosition):
         grid[int((newColumn + oldColumn) / 2)][int((newRow + oldRow) / 2)].piece = None
         return grid[newColumn][newRow].piece.team
     return opposite(grid[newColumn][newRow].piece.team)
+    
+
+      
+def set_up_custom_board(grid):
+    
+    # Clear the existing pieces on the grid
+    for i in range(ROWS):
+        for j in range(ROWS):
+            grid[i][j].piece = None
+
+    # Set up a custom board configuration
+    
+    grid[1][1].piece = Piece('R')
+    grid[1][5].piece = Piece('R')
+    grid[2][4].piece = Piece('R')
+    grid[2][6].piece = Piece('R')
+    grid[2][8].piece = Piece('R')
+    grid[3][1].piece = Piece('R')
+    grid[3][7].piece = Piece('R')
+    grid[4][2].piece = Piece('R')
+    grid[8][4].piece = Piece('R')
+    grid[8][4].piece.type = 'KING'
+    grid[8][4].piece.image = REDKING
+
+    grid[4][4].piece = Piece('G')
+    grid[6][2].piece = Piece('G')
+    grid[6][4].piece = Piece('G')
+    grid[6][8].piece = Piece('G')
+    grid[7][1].piece = Piece('G')
+    grid[7][3].piece = Piece('G')
+    grid[7][7].piece = Piece('G')
+
+    # Update the display
+    #update_display(WIN, grid, ROWS, WIDTH)
+
 
 def main(WIDTH, ROWS):
     global game_over
@@ -301,9 +351,18 @@ def main(WIDTH, ROWS):
         for event in pygame.event.get():
             # Window is closed
             if event.type == pygame.QUIT:
-                print('EXIT SUCCESSFUL')
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    print("First preset")
+                    set_up_custom_board(grid)
+                
+                if event.key == pygame.K_1:
+                    print("Base case")
+                    grid = make_grid(ROWS, WIDTH)
+
             # Mouse pressed down
             if event.type == pygame.MOUSEBUTTONDOWN:
                 clickedNode = getNode(grid, ROWS, WIDTH)
@@ -334,6 +393,19 @@ def main(WIDTH, ROWS):
                             highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
                             capture_in_progress = hasForcedCaptures(grid, currMove)
 
+        # Check for game over conditions after each player's move
+        game_over = check_win_conditions(grid, currMove)
+
+        # If the game is over, display the game over screen
+        if game_over:
+            game_over = game_over_screen(opposite(currMove))
+            if not game_over:  # If "Play Again" is pressed, reset game_over to False
+                grid = make_grid(ROWS, WIDTH)
+            
+
+        
+
+        # Update the display
         update_display(WIN, grid, ROWS, WIDTH)
 
 # Run the game
