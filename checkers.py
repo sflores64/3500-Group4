@@ -341,7 +341,6 @@ def set_up_custom_board(grid):
 def main(WIDTH, ROWS):
     global game_over
     grid = make_grid(ROWS, WIDTH)
-    set_up_custom_board(grid)
     highlightedPiece = None
     currMove = 'G'  # Start with GREEN's turn
     capture_in_progress = False
