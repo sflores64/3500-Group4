@@ -470,21 +470,12 @@ def highlight(ClickedNode, Grid, OldHighlight):
     return (Column,Row)
 
 # moves piece into new position
-def move(grid, piece_position, new_position, currMove, last_move):
+def move(grid, piece_position, new_position):
     resetColours(grid, piece_position)
     new_column, new_row = new_position
     old_column, old_row = piece_position
 
     piece = grid[old_column][old_row].piece
-
-    # Check for en passant
-    if piece.name == 'PAWN' and abs(new_row - old_row) == 2:
-        en_passant_column = new_column
-        en_passant_row = (new_row + old_row) // 2
-        last_move['en_passant'] = (en_passant_column, en_passant_row)
-    else:
-        last_move.pop('en_passant', None)
-
     grid[new_column][new_row].piece = piece
     grid[old_column][old_row].piece = None
 
@@ -494,9 +485,10 @@ def move(grid, piece_position, new_position, currMove, last_move):
     if piece.name == 'PAWN' and (new_column == 1 or new_column == 8):
         promote_pawn(grid, new_column, new_row)
 
-    return opposite(currMove)
+    return opposite(grid[new_column][new_row].piece.team)
 
 # Modify the promote_pawn function
+
 def promote_pawn(grid, column, row):
     # Set the promoted piece to queen
     grid[column][row].piece = Piece('QUEEN', grid[column][row].piece.team)
@@ -505,7 +497,6 @@ def main(WIDTH, ROWS):
     grid = make_grid(ROWS, WIDTH)
     highlightedPiece = None
     currMove = 'W'
-    last_move = {}
 
     while True:
         for event in pygame.event.get():
@@ -523,7 +514,7 @@ def main(WIDTH, ROWS):
                         pieceColumn, pieceRow = highlightedPiece
                     if currMove == grid[pieceColumn][pieceRow].piece.team:
                         resetColours(grid, highlightedPiece)
-                        currMove = move(grid, highlightedPiece, clickedNode, currMove, last_move)
+                        currMove=move(grid, highlightedPiece, clickedNode)
                 elif grid[ClickedPositionColumn][ClickedPositionRow].colour == BLACK:
                     if grid[ClickedPositionColumn][ClickedPositionRow].button == 'RESET':
                         grid = make_grid(ROWS, WIDTH)
