@@ -548,7 +548,7 @@ def kingsMonitor(grid): # pass this function in main game loop, wil handle check
             saves = []
             resetColours(grid, (wKingX, wKingY))
             resetColours(grid, (bKingX, bKingY))
-            print('CaseC')
+            #print('CaseC')
     
 
         
@@ -671,7 +671,7 @@ def getSaveMoves(grid, kingCoords):
                     lineOfAttack.append((i, j))
                     i += 1
                     j -= 1
-    print(lineOfAttack)
+    # print(lineOfAttack)
     for i in range(1, 9):
         for j in range(1, 9): # these for loops cycle through the whole board
             if grid[i][j].piece:
@@ -685,8 +685,9 @@ def getSaveMoves(grid, kingCoords):
                     for x in range(-1, 2):
                         for y in range(-1, 2):
                             if ((i + x),(j + y)) not in getEnemyList(opposite(grid[kingX][kingY].piece.team), grid) and ((0 < (i + x) < 9) and (0 < (i + y) < 9)):
-                                if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
-                                    saves.append(((i + x),(j + y))) 
+                                if grid[(i + x)][(j + y)].piece:
+                                    if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
+                                        saves.append(((i + x),(j + y))) 
     return saves
 
 # highlights clicked piece on board
@@ -768,7 +769,7 @@ def main(WIDTH, ROWS):
             # what happens when a node is clicked
             if event.type == pygame.MOUSEBUTTONDOWN:
                 clickedNode = getNode(grid, ROWS, WIDTH)
-                print(clickedNode)
+                #print(clickedNode)
                 ClickedPositionColumn, ClickedPositionRow = clickedNode
                 if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE or grid[ClickedPositionColumn][ClickedPositionRow].colour == RED:
                     if highlightedPiece:
