@@ -531,14 +531,14 @@ def kingsMonitor(grid): # pass this function in main game loop, wil handle check
         grid[bKingX][bKingY].piece.kingInCheck = True
         grid[bKingX][bKingY].colour = YELLOW
         #print(saves)
-        if len(getSaveMoves(grid, bKingCoords)) < 1 and len(generatePotentialMoves((bKingX, bKingY), grid)) < 1:
+        if len(getSaveMoves(grid, bKingCoords)) <= 1 and len(generatePotentialMoves((bKingX, bKingY), grid)) < 1:
             checkmate(grid, (bKingX, bKingY))
         #print('CaseA')
     elif SpaceUnderAttack('W', wKingCoords, grid): # if the white king is in check
         grid[wKingX][wKingY].piece.kingInCheck = True
         grid[wKingX][wKingY].colour = YELLOW
         #print(saves)
-        if len(getSaveMoves(grid, wKingCoords)) < 1 and len(generatePotentialMoves((wKingX, wKingY), grid)) < 1:
+        if len(getSaveMoves(grid, wKingCoords)) <= 1 and len(generatePotentialMoves((wKingX, wKingY), grid)) < 1:
             checkmate(grid, (wKingX, wKingY))
         #print('CaseB')
     elif (not SpaceUnderAttack('W', wKingCoords, grid) and not SpaceUnderAttack('B', bKingCoords, grid)): # if neither king is in check
@@ -696,7 +696,7 @@ def getSaveMoves(grid, kingCoords):
                                         testCoords.append((testX, testY)) # if there's no piece                
     safeCoords = set(testCoords) - set(enemyList)
     saves.extend(safeCoords)                                
-    # print(len(saves))
+    print(len(saves))
     return saves
 
 def isEmpty(grid, Coords):
