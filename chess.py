@@ -688,6 +688,9 @@ def getSaveMoves(grid, kingCoords):
                                 if grid[(i + x)][(j + y)].piece:
                                     if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
                                         saves.append(((i + x),(j + y))) 
+                                else:
+                                    if not SpaceUnderAttack(grid[kingX][kingY].piece.team, ((i + x, j + y)), grid):
+                                        saves.append(((i + x),(j + y)))
     return saves
 
 # highlights clicked piece on board
