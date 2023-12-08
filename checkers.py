@@ -1,4 +1,4 @@
-######################################
+####################################################################
 # CMPS 3500 - Class Project
 # Updated: 12/7/2023
 # File: checkers.py
@@ -6,13 +6,14 @@
 # Name 2: Sandra Mateiro 
 # Name 3: Ricardo Rivas Navarro
 # Name 4: Jason Rodriguez
-# Description: Runs a default game of checkers ( press '1' for )
-#
-######################################
+# Description: Runs a default game of checkers ( press '1' for reset 
+# and space for test case)
+####################################################################
 
 import pygame
 import random
 import sys
+import subprocess
 from itertools import combinations
 import os
 
@@ -112,15 +113,16 @@ def draw_grid(win, rows, width):
 
             # Draw column labels (a-j) on the first and last row
             if i == 0 or i == rows - 1:
-                label = chr(ord('a') + j - 1) if 1 <= j <= 8 else ''
+                label = chr(ord('A') + j - 1) if 1 <= j <= 8 else ''
                 label_text = BUTTON_FONT.render(label, 1, WHITE)
                 win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
 
-            # Draw row labels (1-8) on the first and last column
+            # Draw row labels (1-9) on the first and last column
             if j == 0 or j == rows - 1:
-                label = str(i + 0) if 1 <= i <= 8 else ''
-                label_text = BUTTON_FONT.render(label, 1, WHITE)
-                win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
+                 starting_number = 9
+                 label = str(starting_number - i) if 1 <= i <= 8 else ''
+                 label_text = BUTTON_FONT.render(label, 1, WHITE)
+                 win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
 
 # Class representing a checkers piece
 class Piece:
@@ -264,6 +266,12 @@ def game_over_screen(winner):
     text_rect = play_again_text.get_rect(center=(WIDTH // 2, 495))
     WIN.blit(play_again_text, text_rect)
 
+    # Play Again button 
+    main_menu_button = pygame.draw.rect(WIN, EXIT_BUTTON_COLOR, (WIDTH // 2 - 125, 550, 250, 50))
+    main_menu_text = BUTTON_FONT.render("Main menu", 1, WHITE)
+    text_rect = play_again_text.get_rect(center=(WIDTH // 2, 570))
+    WIN.blit(main_menu_text, text_rect)
+
     pygame.display.update()
 
     while True:
@@ -279,7 +287,9 @@ def game_over_screen(winner):
                 elif play_again_button.collidepoint(mouse_x, mouse_y):
                     print("play again pressed")
                     return  # Exit the function, breaking out of the infinite loop
-
+                elif main_menu_button.collidepoint(mouse_x, mouse_y):
+                    pygame.quit()
+                    execute("main_menu.py")
                     
 # Function to highlight nodes and handle moves
 def highlight(ClickedNode, Grid, OldHighlight):
@@ -349,6 +359,11 @@ def set_up_custom_board(grid):
     # Update the display
     #update_display(WIN, grid, ROWS, WIDTH)
 
+def execute(file):
+    try:
+        subprocess.run(['python3', file], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
 
 def main(WIDTH, ROWS):
     global game_over
@@ -369,6 +384,7 @@ def main(WIDTH, ROWS):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     print("First preset")
+                    grid = make_grid(ROWS, WIDTH)
                     set_up_custom_board(grid)
                     currMove = 'G'
                 
@@ -376,6 +392,9 @@ def main(WIDTH, ROWS):
                     print("Base case")
                     grid = make_grid(ROWS, WIDTH)
                     currMove = 'G'
+                if event.key == pygame.K_m:
+                    pygame.quit()
+                    execute("main_menu.py")
 
             # Mouse pressed down
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -415,6 +434,7 @@ def main(WIDTH, ROWS):
             game_over = game_over_screen(opposite(currMove))
             if not game_over:  # If "Play Again" is pressed, reset game_over to False
                 grid = make_grid(ROWS, WIDTH)
+                currMove = 'G'
         # Update the display
         update_display(WIN, grid, ROWS, WIDTH)
 

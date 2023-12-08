@@ -226,6 +226,7 @@ class Piece:
     def __init__(self, name, team):
         self.name = name
         self.team = team
+        self.promoted = False
         if self.team == 'B':
             if self.name == 'BISHOP':
                 self.image = B_BISHOP
@@ -469,18 +470,28 @@ def highlight(ClickedNode, Grid, OldHighlight):
     return (Column,Row)
 
 # moves piece into new position
-def move(grid, piecePosition, newPosition):
-    resetColours(grid, piecePosition)
-    newColumn, newRow = newPosition
-    oldColumn, oldRow = piecePosition
+def move(grid, piece_position, new_position):
+    resetColours(grid, piece_position)
+    new_column, new_row = new_position
+    old_column, old_row = piece_position
 
-    piece = grid[oldColumn][oldRow].piece
-    grid[newColumn][newRow].piece = piece
-    grid[oldColumn][oldRow].piece = None
+    piece = grid[old_column][old_row].piece
+    grid[new_column][new_row].piece = piece
+    grid[old_column][old_row].piece = None
 
-    grid[newColumn][newRow].piece.hasMoved = True
+    grid[new_column][new_row].piece.hasMoved = True
 
-    return opposite(grid[newColumn][newRow].piece.team)
+    # Check for pawn promotion when reaching the first or last column
+    if piece.name == 'PAWN' and (new_column == 1 or new_column == 8):
+        promote_pawn(grid, new_column, new_row)
+
+    return opposite(grid[new_column][new_row].piece.team)
+
+# Modify the promote_pawn function
+
+def promote_pawn(grid, column, row):
+    # Set the promoted piece to queen
+    grid[column][row].piece = Piece('QUEEN', grid[column][row].piece.team)
 
 def main(WIDTH, ROWS):
     grid = make_grid(ROWS, WIDTH)
