@@ -472,7 +472,7 @@ def generatePotentialMoves(nodePosition, grid):
                         if grid[column][1].piece and not grid[column][1].piece.hasMoved:
                             count = 0
                             for i in range(2, 5):
-                                if not SpaceUnderAttack(team, (column, i), grid):
+                                if not SpaceUnderAttack(team, (column, i), grid) and isEmpty(grid, (column, i)):
                                     count += 1
                             if count == 3:
                                 positions.append((column, 1))
@@ -480,7 +480,7 @@ def generatePotentialMoves(nodePosition, grid):
                         if grid[column][8].piece and not grid[column][8].piece.hasMoved:
                             count = 0
                             for i in range(6, 8):
-                                if not SpaceUnderAttack(team, (column, i), grid):
+                                if not SpaceUnderAttack(team, (column, i), grid) and isEmpty(grid, (column, i)):
                                     count += 1
                             if count == 2:
                                 positions.append((column, 8))
@@ -533,7 +533,7 @@ def kingsMonitor(grid): # pass this function in main game loop, wil handle check
         #print(saves)
         if len(getSaveMoves(grid, bKingCoords)) < 1 and len(generatePotentialMoves((bKingX, bKingY), grid)) < 1:
             checkmate(grid, (bKingX, bKingY))
-        print('CaseA')
+        #print('CaseA')
     elif SpaceUnderAttack('W', wKingCoords, grid): # if the white king is in check
         grid[wKingX][wKingY].piece.kingInCheck = True
         grid[wKingX][wKingY].colour = YELLOW
@@ -569,7 +569,7 @@ def checkmate(grid, kingCoords):
     
         
 def getSaveMoves(grid, kingCoords):
-    global saves
+    saves = []
     lineOfAttack = []
     kingX, kingY = kingCoords
     attackX = 9
@@ -582,7 +582,7 @@ def getSaveMoves(grid, kingCoords):
                         attackX = i
                         attackY = j
     lineOfAttack.append((attackX, attackY)) # The piece itself counts in the LoA, as capturing the piece is a save move.
-
+    saves.append((attackX, attackY))
     if (1 <= attackX < 9) and (1 <= attackY < 9):
         if grid[attackX][attackY].piece.name == 'ROOK':
             if attackX == kingX:
@@ -672,9 +672,12 @@ def getSaveMoves(grid, kingCoords):
                     i += 1
                     j -= 1
     # print(lineOfAttack)
+    
+    testCoords = []
     for i in range(1, 9):
         for j in range(1, 9): # these for loops cycle through the whole board
-            if grid[i][j].piece:
+            if grid[i][j].piece: # if piece is friendly and not the king
+                enemyList = getEnemyList(grid[i][j].piece.team, grid)
                 if grid[i][j].piece.team == grid[kingX][kingY].piece.team and grid[i][j].piece.name != 'KING':
                     potentialMoves = generatePotentialMoves((i, j), grid)
                     for a in range(1, 9):
@@ -682,16 +685,26 @@ def getSaveMoves(grid, kingCoords):
                             if ((a, b) in potentialMoves) and ((a, b) in lineOfAttack):
                                 saves.append((a, b))
                 elif grid[i][j].piece.team == grid[kingX][kingY].piece.team and grid[i][j].piece.name == 'KING':
-                    for x in range(-1, 2): # cycles through spaces around the King to add saves
-                        for y in range(-1, 2): # below is if the space is not under attack, and the space is within the range of the board
-                            if ((i + x),(j + y)) not in getEnemyList(opposite(grid[kingX][kingY].piece.team), grid) and ((0 < (i + x) < 9) and (0 < (i + y) < 9)):
-                                if grid[(i + x)][(j + y)].piece:
-                                    if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
-                                        saves.append(((i + x),(j + y))) 
-                                else: #if the space is empty and not under attack
-                                    if not SpaceUnderAttack(grid[kingX][kingY].piece.team, ((i + x, j + y)), grid) and not grid[(i + x)][(j + y)].piece:
-                                        saves.append(((i + x),(j + y)))
+                        for x in range(-1, 2): # cycles through spaces around the King to add saves
+                            for y in range(-1, 2): # below is if the space is not under attack, and the space is within the range of the board
+                                testX = i + x
+                                testY = j + y
+                                if ((1 <= testX < 9) and (1 <= testY < 9)):
+                                    if grid[testX][testY].piece and grid[testX][testY].piece.team != grid[i][j].piece.team:
+                                        testCoords.append((testX, testY)) # if there's a piece and it's an enemy piece
+                                    elif not grid[testX][testY].piece:
+                                        testCoords.append((testX, testY)) # if there's no piece                
+    safeCoords = set(testCoords) - set(enemyList)
+    saves.extend(safeCoords)                                
+    # print(len(saves))
     return saves
+
+def isEmpty(grid, Coords):
+    CoordsX, CoordsY = Coords
+    if grid[CoordsX][CoordsY].piece:
+        return False
+    else:
+        return True
 
 # highlights clicked piece on board
 def highlight(ClickedNode, Grid, OldHighlight):
