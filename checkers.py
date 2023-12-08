@@ -1,7 +1,7 @@
 #####################################################################
 # CMPS 3500 - Class Project
 # Updated: 12/7/2023
-# File: checkers_test.py
+# File: checkers.py
 # Name 1: Edwin Aviles
 # Name 2: Sandra Mateiro 
 # Name 3: Ricardo Rivas Navarro

@@ -19,7 +19,7 @@ from itertools import combinations
 import os
 
 # Error logging
-logging.basicConfig(filename='checkers.log', level=logging.ERROR)
+logging.basicConfig(filename='checkers_test.log', level=logging.ERROR)
 
 # Constants
 WIDTH = 1000
