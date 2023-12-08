@@ -682,14 +682,14 @@ def getSaveMoves(grid, kingCoords):
                             if ((a, b) in potentialMoves) and ((a, b) in lineOfAttack):
                                 saves.append((a, b))
                 elif grid[i][j].piece.team == grid[kingX][kingY].piece.team and grid[i][j].piece.name == 'KING':
-                    for x in range(-1, 2):
-                        for y in range(-1, 2):
+                    for x in range(-1, 2): # cycles through spaces around the King to add saves
+                        for y in range(-1, 2): # below is if the space is not under attack, and the space is within the range of the board
                             if ((i + x),(j + y)) not in getEnemyList(opposite(grid[kingX][kingY].piece.team), grid) and ((0 < (i + x) < 9) and (0 < (i + y) < 9)):
                                 if grid[(i + x)][(j + y)].piece:
                                     if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
                                         saves.append(((i + x),(j + y))) 
-                                else:
-                                    if not SpaceUnderAttack(grid[kingX][kingY].piece.team, ((i + x, j + y)), grid):
+                                else: #if the space is empty and not under attack
+                                    if not SpaceUnderAttack(grid[kingX][kingY].piece.team, ((i + x, j + y)), grid) and not grid[(i + x), (j + y)].piece:
                                         saves.append(((i + x),(j + y)))
     return saves
 
