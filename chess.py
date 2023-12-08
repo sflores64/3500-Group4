@@ -689,7 +689,7 @@ def getSaveMoves(grid, kingCoords):
                                     if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
                                         saves.append(((i + x),(j + y))) 
                                 else: #if the space is empty and not under attack
-                                    if not SpaceUnderAttack(grid[kingX][kingY].piece.team, ((i + x, j + y)), grid) and not grid[(i + x), (j + y)].piece:
+                                    if not SpaceUnderAttack(grid[kingX][kingY].piece.team, ((i + x, j + y)), grid) and not grid[(i + x)][(j + y)].piece:
                                         saves.append(((i + x),(j + y)))
     return saves
 
