@@ -467,7 +467,7 @@ def generatePotentialMoves(nodePosition, grid):
         team = grid[column][row].piece.team
         if grid[column][row].piece:
             if ((column == 8 or column == 1) and row == 5):
-                if grid[column][row].piece.name == 'KING': # Adding positions for castling move. Actual move will be handled in move function.
+                if grid[column][row].piece.name == 'KING' and not grid[column][row].piece.kingInCheck: # Adding positions for castling move. Actual move will be handled in move function.
                     if not grid[column][row].piece.hasMoved:
                         if grid[column][1].piece and not grid[column][1].piece.hasMoved:
                             count = 0
@@ -476,7 +476,7 @@ def generatePotentialMoves(nodePosition, grid):
                                     count += 1
                             if count == 3:
                                 positions.append((column, 1))
-                                print(positions)
+                                # print(positions)
                         if grid[column][8].piece and not grid[column][8].piece.hasMoved:
                             count = 0
                             for i in range(6, 8):
@@ -484,7 +484,7 @@ def generatePotentialMoves(nodePosition, grid):
                                     count += 1
                             if count == 2:
                                 positions.append((column, 8))
-                                print(positions)
+                                # print(positions)
     return positions
 
 # function for getting a list of all possible enemy moves to prevent the King from being able to move there
@@ -530,17 +530,17 @@ def kingsMonitor(grid): # pass this function in main game loop, wil handle check
     if SpaceUnderAttack('B', bKingCoords, grid): # if the black king is in check
         grid[bKingX][bKingY].piece.kingInCheck = True
         grid[bKingX][bKingY].colour = YELLOW
-        print(saves)
-        if len(saves) < 1 and len(generatePotentialMoves((bKingX, bKingY), grid)) < 1:
+        #print(saves)
+        if len(getSaveMoves(grid, bKingCoords)) < 1 and len(generatePotentialMoves((bKingX, bKingY), grid)) < 1:
             checkmate(grid, (bKingX, bKingY))
         print('CaseA')
     elif SpaceUnderAttack('W', wKingCoords, grid): # if the white king is in check
         grid[wKingX][wKingY].piece.kingInCheck = True
         grid[wKingX][wKingY].colour = YELLOW
-        print(saves)
-        if len(saves) < 1 and len(generatePotentialMoves((wKingX, wKingY), grid)) < 1:
+        #print(saves)
+        if len(getSaveMoves(grid, wKingCoords)) < 1 and len(generatePotentialMoves((wKingX, wKingY), grid)) < 1:
             checkmate(grid, (wKingX, wKingY))
-        print('CaseB')
+        #print('CaseB')
     elif (not SpaceUnderAttack('W', wKingCoords, grid) and not SpaceUnderAttack('B', bKingCoords, grid)): # if neither king is in check
         if grid[wKingX][wKingY].piece.kingInCheck or grid[bKingX][bKingY].piece.kingInCheck:
             grid[wKingX][wKingY].piece.kingInCheck = False
@@ -609,7 +609,7 @@ def getSaveMoves(grid, kingCoords):
                     j += 1
             elif attackY > kingY and attackX < kingX:
                 i = kingX - 1
-                j = kingX + 1
+                j = kingY + 1
                 while i > attackX and j < attackY:
                     lineOfAttack.append((i, j))
                     i -= 1
@@ -652,7 +652,7 @@ def getSaveMoves(grid, kingCoords):
                     j += 1
             elif attackY > kingY and attackX < kingX:
                 i = kingX - 1
-                j = kingX + 1
+                j = kingY + 1
                 while i > attackX and j < attackY:
                     lineOfAttack.append((i, j))
                     i -= 1
@@ -684,8 +684,9 @@ def getSaveMoves(grid, kingCoords):
                 elif grid[i][j].piece.team == grid[kingX][kingY].piece.team and grid[i][j].piece.name == 'KING':
                     for x in range(-1, 2):
                         for y in range(-1, 2):
-                            if ((i + x),(j + y)) not in getEnemyList(opposite(grid[kingX][kingY].piece.team), grid):
-                               saves.append(((i + x),(j + y))) 
+                            if ((i + x),(j + y)) not in getEnemyList(opposite(grid[kingX][kingY].piece.team), grid) and ((0 < (i + x) < 9) and (0 < (i + y) < 9)):
+                                if grid[(i + x)][(j + y)].piece.team != grid[kingX][kingY].piece.team:
+                                    saves.append(((i + x),(j + y))) 
     return saves
 
 # highlights clicked piece on board
