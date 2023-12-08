@@ -1,21 +1,25 @@
-####################################################################
+#####################################################################
 # CMPS 3500 - Class Project
 # Updated: 12/7/2023
-# File: checkers.py
+# File: checkers_test.py
 # Name 1: Edwin Aviles
 # Name 2: Sandra Mateiro 
 # Name 3: Ricardo Rivas Navarro
 # Name 4: Jason Rodriguez
-# Description: Runs a default game of checkers ( press '1' for reset 
+# Description: Runs a running game of checkers ( press '1' for reset 
 # and space for test case)
 ####################################################################
-
+ 
 import pygame
 import random
 import sys
 import subprocess
+import logging
 from itertools import combinations
 import os
+
+# Error logging
+logging.basicConfig(filename='checkers.log', level=logging.ERROR)
 
 # Constants
 WIDTH = 1000
@@ -27,18 +31,26 @@ BLUE = (76, 252, 241)
 
 # Load images
 dirname = os.path.dirname(__file__)
-RED = pygame.image.load(os.path.join(dirname, 'images/red.png'))
-GREEN = pygame.image.load(os.path.join(dirname, 'images/green.png'))
-REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
-GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
+try:
+    RED = pygame.image.load(os.path.join(dirname, 'images/red.png'))
+    GREEN = pygame.image.load(os.path.join(dirname, 'images/green.png'))
+    REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
+    GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
+except pygame.error as e:
+    print(f"Error loading images: {e}")
+    sys.exit(1)
 
 # Initialize Pygame
 pygame.init()
 pygame.font.init()
 pygame.mixer.init()
 
+
 # Load sounds
-kinged_sound = pygame.mixer.Sound('sounds/chime.wav')
+try:
+    kinged_sound = pygame.mixer.Sound('sounds/chime.wav')
+except pygame.error as e:
+    print(f"Error loading sound: {e}") 
 
 # Set up game window
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
@@ -123,7 +135,6 @@ def draw_grid(win, rows, width):
                  label = str(starting_number - i) if 1 <= i <= 8 else ''
                  label_text = BUTTON_FONT.render(label, 1, WHITE)
                  win.blit(label_text, (j * gap + gap // 2 - label_text.get_width() // 2, i * gap + gap // 2 - label_text.get_height() // 2))
-
 # Class representing a checkers piece
 class Piece:
     def __init__(self, team):
@@ -290,6 +301,7 @@ def game_over_screen(winner):
                 elif main_menu_button.collidepoint(mouse_x, mouse_y):
                     pygame.quit()
                     execute("main_menu.py")
+
                     
 # Function to highlight nodes and handle moves
 def highlight(ClickedNode, Grid, OldHighlight):
@@ -371,7 +383,7 @@ def main(WIDTH, ROWS):
     highlightedPiece = None
     currMove = 'G'  # Start with GREEN's turn
     capture_in_progress = False
-
+    
     # Main game loop
     while not game_over:
         # Check for events
@@ -387,11 +399,14 @@ def main(WIDTH, ROWS):
                     grid = make_grid(ROWS, WIDTH)
                     set_up_custom_board(grid)
                     currMove = 'G'
+                    highlightedPiece = None
                 
                 if event.key == pygame.K_1:
                     print("Base case")
                     grid = make_grid(ROWS, WIDTH)
                     currMove = 'G'
+                    highlightedPiece = None
+
                 if event.key == pygame.K_m:
                     pygame.quit()
                     execute("main_menu.py")
@@ -435,8 +450,15 @@ def main(WIDTH, ROWS):
             if not game_over:  # If "Play Again" is pressed, reset game_over to False
                 grid = make_grid(ROWS, WIDTH)
                 currMove = 'G'
+                highlightedPiece = None
         # Update the display
         update_display(WIN, grid, ROWS, WIDTH)
 
-# Run the game
-main(WIDTH, ROWS)
+try:
+    # Run the game
+    main(WIDTH, ROWS)
+except Exception as e:
+    logging.error(f"An unexpected error occurred: {e}")
+    pygame.quit()
+    sys.exit()
+

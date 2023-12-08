@@ -14,8 +14,12 @@ import pygame
 import random
 import sys
 import subprocess
+import logging
 from itertools import combinations
 import os
+
+# Error logging
+logging.basicConfig(filename='checkers.log', level=logging.ERROR)
 
 # Constants
 WIDTH = 1000
@@ -27,10 +31,14 @@ BLUE = (76, 252, 241)
 
 # Load images
 dirname = os.path.dirname(__file__)
-RED = pygame.image.load(os.path.join(dirname, 'images/red.png'))
-GREEN = pygame.image.load(os.path.join(dirname, 'images/green.png'))
-REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
-GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
+try:
+    RED = pygame.image.load(os.path.join(dirname, 'images/red.png'))
+    GREEN = pygame.image.load(os.path.join(dirname, 'images/green.png'))
+    REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
+    GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
+except pygame.error as e:
+    print(f"Error loading images: {e}")
+    sys.exit(1)
 
 # Initialize Pygame
 pygame.init()
@@ -38,7 +46,10 @@ pygame.font.init()
 pygame.mixer.init()
 
 # Load sounds
-kinged_sound = pygame.mixer.Sound('sounds/chime.wav')
+try:
+    kinged_sound = pygame.mixer.Sound('sounds/chime.wav')
+except pygame.error as e:
+    print(f"Error loading sound: {e}") 
 
 # Set up game window
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
@@ -372,7 +383,7 @@ def main(WIDTH, ROWS):
     highlightedPiece = None
     currMove = 'G'  # Start with GREEN's turn
     capture_in_progress = False
-
+    
     # Main game loop
     while not game_over:
         # Check for events
@@ -443,5 +454,10 @@ def main(WIDTH, ROWS):
         # Update the display
         update_display(WIN, grid, ROWS, WIDTH)
 
-# Run the game
-main(WIDTH, ROWS)
+try:
+    # Run the game
+    main(WIDTH, ROWS)
+except Exception as e:
+    logging.error(f"An unexpected error occurred: {e}")
+    pygame.quit()
+    sys.exit()
