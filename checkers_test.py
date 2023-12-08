@@ -1,15 +1,15 @@
-######################################
-# CMPS 3500 - Class Project
+# course: CMPS 3500
+# CLASS Project
+# PYTHON IMPLEMENTATION: Checker Test Cases
 # Updated: 12/7/2023
-# File: checkers.py
-# Name 1: Edwin Aviles
-# Name 2: Sandra Mateiro 
-# Name 3: Ricardo Rivas Navarro
-# Name 4: Jason Rodriguez
-# Description: Runs a default game of checkers ( press '1' for )
-#
-######################################
-
+# Student 1: Edwin Aviles
+# Student 2: Sandra Materio
+# Student 3: Ricardo Rivas Navarro
+# Student 4: Jason Rodriguez
+# description: Contains a preset board for testing. 
+#              Press '1' to reset board 
+#              Press Space to set up test case
+ 
 import pygame
 import random
 import sys
@@ -353,6 +353,7 @@ def set_up_custom_board(grid):
 def main(WIDTH, ROWS):
     global game_over
     grid = make_grid(ROWS, WIDTH)
+    set_up_custom_board(grid)
     highlightedPiece = None
     currMove = 'G'  # Start with GREEN's turn
     capture_in_progress = False

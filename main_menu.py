@@ -1,3 +1,14 @@
+##########################################################################
+# CMPS 3500 - Class Project
+# Updated: 12/7/2023
+# File: main_menu.py
+# Name 1: Edwin Aviles
+# Name 2: Sandra Mateiro 
+# Name 3: Ricardo Rivas Navarro
+# Name 4: Jason Rodriguez
+# Description: Provides a main menu to access default games and test cases
+##########################################################################
+
 import pygame
 import sys
 import subprocess
@@ -82,7 +93,7 @@ while True:
                 execute("chess.py")
             elif test_checkers_rect.collidepoint(event.pos):
                 print("Test Checkers clicked")
-                execute("test_checkers.py")
+                execute("checkers_test.py")
             elif test_chess_rect.collidepoint(event.pos):
                 print("Test Chess clicked")
                 execute("test_chess.py")
