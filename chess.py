@@ -12,6 +12,7 @@ import os
 import pygame
 import random
 import sys
+import subprocess
 from itertools import combinations
 
 # current directory
@@ -778,6 +779,12 @@ def promote_pawn(grid, column, row):
     # Set the promoted piece to queen
     grid[column][row].piece = Piece('QUEEN', grid[column][row].piece.team)
 
+def execute(file):
+    try:
+        subprocess.run(['python3', file], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+
 def main(WIDTH, ROWS):
     grid = make_grid(ROWS, WIDTH)
     highlightedPiece = None
@@ -819,8 +826,8 @@ def main(WIDTH, ROWS):
                         highlightedPiece = None
                         currMove = 'W'
                     elif grid[ClickedPositionColumn][ClickedPositionRow].button == 'MENU':
-                        #button for menu goes here
-                        print("Menu has not been implimented yet!")
+                        pygame.quit()
+                        execute("start_menu.py")
                 elif highlightedPiece == clickedNode:
                     pass
                 else:
