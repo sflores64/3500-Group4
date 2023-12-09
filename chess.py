@@ -12,7 +12,6 @@ import os
 import pygame
 import random
 import sys
-import subprocess
 from itertools import combinations
 
 # current directory
@@ -300,7 +299,7 @@ def HighlightpotentialMoves(piecePosition, grid):
     pieceColumn, pieceRow = piecePosition
     KingCoords = getKingCoords(grid[pieceColumn][pieceRow].piece.team, grid)
     KingColumn, KingRow = KingCoords
-    if not grid[KingColumn][KingRow].piece.kingInCheck:
+    if not grid[KingColumn][KingRow].piece.kingInCheck:         # generates standard moveset
         positions = generatePotentialMoves(piecePosition, grid)
         for position in positions:
             Column,Row = position
@@ -308,7 +307,7 @@ def HighlightpotentialMoves(piecePosition, grid):
                 grid[Column][Row].colour = RED
             else:
                 grid[Column][Row].colour=BLUE
-    else:
+    else:                                       # generates valid moves for when king is in check
         basepositions = generatePotentialMoves(piecePosition, grid)
         savepositions = getSaveMoves(grid, KingCoords)
         positions = set(basepositions) & set(savepositions)
@@ -479,12 +478,12 @@ def generatePotentialMoves(nodePosition, grid):
         # CASTLING            
         team = grid[column][row].piece.team
         if grid[column][row].piece:
-            if ((column == 8 or column == 1) and row == 5):
+            if ((column == 8 or column == 1) and row == 5): # eligible rooks will always have these values
                 if grid[column][row].piece.name == 'KING' and not grid[column][row].piece.kingInCheck: # Adding positions for castling move. Actual move will be handled in move function.
                     if not grid[column][row].piece.hasMoved:
                         if grid[column][1].piece and not grid[column][1].piece.hasMoved:
                             count = 0
-                            for i in range(2, 5):
+                            for i in range(2, 5): # each space must both be safe from attack, and must be empty
                                 if not SpaceUnderAttack(team, (column, i), grid) and isEmpty(grid, (column, i)):
                                     count += 1
                             if count == 3:
@@ -597,7 +596,7 @@ def getSaveMoves(grid, kingCoords):
     lineOfAttack.append((attackX, attackY)) # The piece itself counts in the LoA, as capturing the piece is a save move.
     saves.append((attackX, attackY))
     if (1 <= attackX < 9) and (1 <= attackY < 9):
-        if grid[attackX][attackY].piece.name == 'ROOK':
+        if grid[attackX][attackY].piece.name == 'ROOK': # checking the rows or columns shared with the king to find line of attack
             if attackX == kingX:
                 if kingY > attackY:
                     for k in range(attackY, kingY):
@@ -612,7 +611,7 @@ def getSaveMoves(grid, kingCoords):
                 else:
                     for k in range(kingX, attackX):
                         lineOfAttack.append((attackX, k))
-        elif grid[attackX][attackY].piece.name == 'BISHOP':
+        elif grid[attackX][attackY].piece.name == 'BISHOP': # checking each diagonal access for the line of attack
             if attackY > kingY and attackX > kingX:
                 i = kingX + 1
                 j = kingY + 1
@@ -641,7 +640,7 @@ def getSaveMoves(grid, kingCoords):
                     lineOfAttack.append((i, j))
                     i += 1
                     j -= 1
-        elif grid[attackX][attackY].piece.name == 'QUEEN':
+        elif grid[attackX][attackY].piece.name == 'QUEEN': # combination of previous 2 movesets
             if attackX == kingX:
                 if kingY > attackY:
                     for k in range(attackY, kingY):
@@ -707,7 +706,7 @@ def getSaveMoves(grid, kingCoords):
                                         testCoords.append((testX, testY)) # if there's a piece and it's an enemy piece
                                     elif not grid[testX][testY].piece:
                                         testCoords.append((testX, testY)) # if there's no piece                
-    safeCoords = set(testCoords) - set(enemyList)
+    safeCoords = set(testCoords) - set(enemyList) # removing unsafe coordnates from testCoords, to then append to saves.
     saves.extend(safeCoords)                                
     print(len(saves))
     return saves
@@ -762,7 +761,7 @@ def move(grid, piecePosition, newPosition):
                 grid[oldColumn][oldRow + 1].piece.hasMoved = True
 
                 return opposite(grid[oldColumn][oldRow + 2].piece.team)
-    else:
+    else: #if the move was not a castle
         piece = grid[oldColumn][oldRow].piece
         grid[newColumn][newRow].piece = piece
         grid[oldColumn][oldRow].piece = None
@@ -778,12 +777,6 @@ def move(grid, piecePosition, newPosition):
 def promote_pawn(grid, column, row):
     # Set the promoted piece to queen
     grid[column][row].piece = Piece('QUEEN', grid[column][row].piece.team)
-
-def execute(file):
-    try:
-        subprocess.run(['python3', file], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
 
 def main(WIDTH, ROWS):
     grid = make_grid(ROWS, WIDTH)
@@ -826,8 +819,8 @@ def main(WIDTH, ROWS):
                         highlightedPiece = None
                         currMove = 'W'
                     elif grid[ClickedPositionColumn][ClickedPositionRow].button == 'MENU':
-                        pygame.quit()
-                        execute("start_menu.py")
+                        #button for menu goes here
+                        print("Menu has not been implimented yet!")
                 elif highlightedPiece == clickedNode:
                     pass
                 else:
