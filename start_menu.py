@@ -98,7 +98,7 @@ while True:
                 execute("checkers_test.py")
             elif test_chess_rect.collidepoint(event.pos):
                 print("Test Chess clicked")
-                execute("test_chess.py")
+                execute("chess_test.py")
             elif exit_rect.collidepoint(event.pos):
                 pygame.quit()
                 sys.exit()
