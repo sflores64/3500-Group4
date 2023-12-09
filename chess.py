@@ -708,7 +708,7 @@ def getSaveMoves(grid, kingCoords):
                                         testCoords.append((testX, testY)) # if there's no piece                
     safeCoords = set(testCoords) - set(enemyList) # removing unsafe coordnates from testCoords, to then append to saves.
     saves.extend(safeCoords)                                
-    print(len(saves))
+    # print(len(saves))
     return saves
 
 def isEmpty(grid, Coords):
