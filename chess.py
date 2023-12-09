@@ -103,6 +103,9 @@ def make_grid(rows, width):
             elif i == 9 and j == 9:
                 node.colour = BLACK
                 node.button = 'TEST'
+            elif i == 0 and j == 0:
+                node.colour = BLACK
+                node.button = 'MENU'
             elif i == 0 or i == 9 or j == 0 or j == 9:
                 node.colour = BLACK
             elif abs(i-j) % 2 == 0:
@@ -169,8 +172,12 @@ def make_test(rows, width):
                 node.piece = Piece('KING', 'B')
             elif count > 20 and count < 24 or count == 34 or count == 45 or count > 25 and count < 29:
                 node.piece = Piece('PAWN', 'B')
+                if count == 34 or count == 45:
+                    node.piece.hasMoved = True
             elif count == 81 or count == 86:
                 node.piece = Piece('ROOK', 'W')
+                if count == 86:
+                    node.piece.hasMoved = True
             elif count == 51 or count == 66:
                 node.piece = Piece('KNIGHT', 'W')
             elif count == 42 or count == 83:
@@ -181,6 +188,8 @@ def make_test(rows, width):
                 node.piece = Piece('KING', 'W')
             elif count == 55 or count > 70 and count < 75 or count > 75 and count < 79:
                 node.piece = Piece('PAWN', 'W')
+                if count == 55:
+                    node.piece.hasMoved = True
             count += 1
             grid[i].append(node)
     return grid
@@ -806,6 +815,9 @@ def main(WIDTH, ROWS):
                         grid = make_test(ROWS, WIDTH)
                         highlightedPiece = None
                         currMove = 'W'
+                    elif grid[ClickedPositionColumn][ClickedPositionRow].button == 'MENU':
+                        #button for menu goes here
+                        print("Menu has not been implimented yet!")
                 elif highlightedPiece == clickedNode:
                     pass
                 else:
