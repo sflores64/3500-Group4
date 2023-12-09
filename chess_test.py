@@ -1,8 +1,12 @@
 ########################################################
 # NAME: GROUP 4
+# NAME1: Edwin Aviles
+# NAME2: Sandra Mateiro 
+# NAME3: Ricardo Rivas Navarro
+# NAME4: Jason Rodriguez
 # ASGT: Class Project
 # ORGN: CSUB - CMPS 3500
-# FILE: chess.py
+# FILE: chess_test.py
 # DATE: 12/03/2023
 # This is a program that will simulate a chess board
 # and provide basic game functionalities.
@@ -779,7 +783,7 @@ def promote_pawn(grid, column, row):
     grid[column][row].piece = Piece('QUEEN', grid[column][row].piece.team)
 
 def main(WIDTH, ROWS):
-    grid = make_grid(ROWS, WIDTH)
+    grid = make_test(ROWS, WIDTH)
     highlightedPiece = None
     currMove = 'W'
     global winner
